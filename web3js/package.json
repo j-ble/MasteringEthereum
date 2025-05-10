@@ -1,0 +1,14 @@
+{
+  "name": "raw_tx",
+  "version": "1.0.0",
+  "main": "raw_tx_demo.js",
+  "scripts": {
+    "test": "raw_tx_demo.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ethereumjs-tx": "^2.1.2"
+  }
+}
