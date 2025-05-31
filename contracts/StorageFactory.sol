@@ -12,4 +12,14 @@ contract StorageFactroy{
         SimpleStorage newSimpleStorageContract = new SimpleStorage();
         listOfSimpleStorageContracts.push(newSimpleStorageContract);
     }
+
+    function sfStore(uint256 _simpleStorageIndex, uint256 _newSimpleStorageNumber) public {
+        // Address - this is needed
+        // ABI - (Application Binary Interface) needed, but only for the function selector
+        listOfSimpleStorageContracts[_simpleStorageIndex].store(_newSimpleStorageNumber);
+    }
+
+    function sfGet(uint256 _simpleStorageIndex) public view returns(uint256) {
+        return listOfSimpleStorageContracts[_simpleStorageIndex].retrieve();
+    }
 }
