@@ -7,9 +7,9 @@
 		"abi": [
 			{
 				"inputs": [],
-				"name": "createSimpleStorageContract",
+				"name": "fund",
 				"outputs": [],
-				"stateMutability": "nonpayable",
+				"stateMutability": "payable",
 				"type": "function"
 			}
 		],
@@ -26,7 +26,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/StorageFactory.sol": "storageFactroy"
+			"contracts/FundMe.sol": "FundMe"
 		},
 		"evmVersion": "shanghai",
 		"libraries": {},
@@ -40,12 +40,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/StorageFactory.sol": {
-			"keccak256": "0xada2598398c888f5f948ad7d4ab010b354ff5279d9b9a92c8ac2bf0af89d96d9",
+		"contracts/FundMe.sol": {
+			"keccak256": "0xe8bba5829d09b2c7292d215a482cf479e8a2fab0ec6b99b97fe410f5dc6c00d8",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://17b6b070148ff8696fda2e1de4ed043bfcd0e79737d5f13c84824eab97907701",
-				"dweb:/ipfs/QmXGEwHqRZaJZpsMxU95rjAnBFnbWswgpift2dATdTgySj"
+				"bzz-raw://9749699dfc5cdfb9ed82cde7a4ab76e2f50055df00665a1ed9bf75e31979a9c9",
+				"dweb:/ipfs/QmejVCqdK7WmKmcoQZ46f2DUX2qKa42KsKegMDcqqvoBEz"
 			]
 		}
 	},
