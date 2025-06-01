@@ -3,7 +3,7 @@
 A guided, hands-on journey through *Cyfrin Updraft* & *Mastering Ethereum* by Andreas M. Antonopoulos and Gavin Wood — implemented by [Jacob Blemaster](https://github.com/j-ble).
 
 ## Before Starting
-- Keep in mind to run the contracts on the zkSync Sepolia Testnet, Move the contracts that you want to run into the folder './contracts'.
+- Keep in mind to run the contracts on the zkSync Sepolia Testnet, move the contracts that you want to run into the folder named './contracts'.
 
 ## 📘 About
 
