@@ -2,19 +2,19 @@
 // Withdrawal funds
 // Set a minimum funding value in USD
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity ^0.8.24;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 contract FundMe {
 
-    uint256 public minimumUsd = 5;
+    uint256 public minimumUsd = 5e18;
 
     function fund () public payable {
         // Allow user to send money
-        // Have a mimimum ammount sent
+        // Have a mimimum amount sent
         // How do we send ETH to this contract?
-        require(msg.value >= minimumUsd, "didn't send enough ETH");
+        require(getConverstionRate(msg.value) >= minimumUsd, "didn't send enough ETH");
 
         // What is a revert?
         // Undo any actions that have been done, and send the remaining gas back
@@ -33,7 +33,15 @@ contract FundMe {
         // Price of ETH in USD terms
         return uint256(price) * 1e10;
     }
-    function getConverstionRate() public {}
+    function getConverstionRate(uint256 ethAmount) public view returns(uint256){
+        // How much is 1 ETH??
+        // 2500_000000000000000000 (current ETH price)
+        uint256 ethPrice = getPrice();
+        // 2500_000000000000000000 * (1 ETH) 1_000000000000000000 / 1e18
+        // $2500 = 1 ETH
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1e18;
+        return ethAmountInUsd;
+    }
 
     function getVersion () public view returns (uint256){
         return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
