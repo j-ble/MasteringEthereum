@@ -12,6 +12,16 @@
 			},
 			{
 				"inputs": [],
+				"name": "NotEnoughETH",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "WithdrawalFailed",
+				"type": "error"
+			},
+			{
+				"inputs": [],
 				"name": "MINIMUM_USD",
 				"outputs": [
 					{
@@ -125,11 +135,11 @@
 			]
 		},
 		"Solidity/FundMe.sol": {
-			"keccak256": "0xab23758a228c9a098b02a8627762b88c0cab25a4060cc59d11ba209ae2099752",
+			"keccak256": "0x16f97a55349ce80cf5c5b402c94b37e85e75bc5b808890eed9d1feb2d0fd732a",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://20e30bbef99dcedc50c051bfc2cdf1cf0889a1b662cf5dcf581df341f6063958",
-				"dweb:/ipfs/QmU9XrdGcEPSbWJTyJcvsecRso6z1eNH4vELSYRyWkukQE"
+				"bzz-raw://714db22bc5714eb815f0644b4f45fbe6629d36e5a6cc1f11c6b8dc8924dbd293",
+				"dweb:/ipfs/QmYX4Zh5HeYjTYtyDdsXC9nQtZkyYraBSGqmVvKraAubmp"
 			]
 		},
 		"Solidity/PriceConverter.sol": {

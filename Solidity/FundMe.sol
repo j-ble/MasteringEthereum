@@ -10,7 +10,12 @@ import {PriceConverter} from "./PriceConverter.sol";
 
 // 693,483 gas - non-constant
 
-// 597,255 gas - constant
+// 506,182 gas - constant ; if and revert rather than require string variable
+
+error NotOwner();
+error NotEnoughETH();
+error WithdrawalFailed();
+
 contract FundMe {
     using PriceConverter for uint256;
 
@@ -33,7 +38,10 @@ contract FundMe {
         // Allow user to send money
         // Have a mimimum amount sent
         // How do we send ETH to this contract?
-        require(msg.value.getConverstionRate() >= MINIMUM_USD, "didn't send enough ETH");
+        if(msg.value.getConverstionRate() < MINIMUM_USD){
+            revert NotEnoughETH();
+        }
+        // require(msg.value.getConverstionRate() >= MINIMUM_USD, "didn't send enough ETH");
         funders.push(msg.sender);
         addressToAmountFunded[msg.sender] += msg.value;
         // What is a revert?
@@ -63,11 +71,15 @@ contract FundMe {
 
         // // call
         (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
-        require(callSuccess, "Call failed");
+        if(!callSuccess) {
+            revert WithdrawalFailed();
+        }
+        // require(callSuccess, "Call failed");
     }
 
     modifier onlyOwner() {
-        require(msg.sender == i_owner, "Sener is not owner");
+        // require(msg.sender == i_owner, "Sener is not owner");
+        if(msg.sender != i_owner) {revert NotOwner();}
         _;
     }
 }
