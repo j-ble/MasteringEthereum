@@ -34,7 +34,6 @@ contract FundMe {
     }
 
     function withdrawal () public {
-        require(msg.sender == owner, "Must be the contract owner");
         // for loop
         // [1, 2, 3, 4] elements
         // 0, 1, 2, 3   indexes
@@ -59,4 +58,8 @@ contract FundMe {
         require(callSuccess, "Call failed");
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Sener is not owner");
+        _;
+    }
 }
