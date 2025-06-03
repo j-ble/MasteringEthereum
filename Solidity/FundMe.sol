@@ -6,26 +6,34 @@ pragma solidity ^0.8.24;
 
 import {PriceConverter} from "./PriceConverter.sol";
 
+// constant, immutable
+
+// 693,483 gas - non-constant
+
+// 597,255 gas - constant
 contract FundMe {
     using PriceConverter for uint256;
 
-    uint256 public minimumUsd = 5e18;
+    uint256 public constant MINIMUM_USD = 5e18;
+    // 2424
 
     address[] public funders;
     mapping(address funder => uint256 amountFunded) public addressToAmountFunded;
 
-    address public owner;
+    address public immutable i_owner;
+    // 439 gas - immutable
+    // 2,574 gas - non-immutable
 
     constructor() {
         // msg is a contract that we are using to communicate with another contract
-        owner = msg.sender;
+        i_owner = msg.sender;
     }
 
     function fund () public payable {
         // Allow user to send money
         // Have a mimimum amount sent
         // How do we send ETH to this contract?
-        require(msg.value.getConverstionRate() >= minimumUsd, "didn't send enough ETH");
+        require(msg.value.getConverstionRate() >= MINIMUM_USD, "didn't send enough ETH");
         funders.push(msg.sender);
         addressToAmountFunded[msg.sender] += msg.value;
         // What is a revert?
@@ -59,7 +67,7 @@ contract FundMe {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Sener is not owner");
+        require(msg.sender == i_owner, "Sener is not owner");
         _;
     }
 }
