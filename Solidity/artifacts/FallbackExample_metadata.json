@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.26+commit.8a97fa7a"
+		"version": "0.8.24+commit.e11b9ed9"
 	},
 	"language": "Solidity",
 	"output": {
@@ -42,7 +42,7 @@
 		"compilationTarget": {
 			"Solidity/FallbackExample.sol": "FallbackExample"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "shanghai",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -55,11 +55,11 @@
 	},
 	"sources": {
 		"Solidity/FallbackExample.sol": {
-			"keccak256": "0xd3e02c5e07d8c7176f8f4a5ec5916b38f8ffc65d1da59d8c9f6fcab226fb8ea7",
+			"keccak256": "0x01d2102c9b22216255f3fc71b083502bb3964733d506cea4ec0614431ce59eda",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d41f3f624dfd44d68c216fabf08637f56eac0447f80f0cd9fefe9489d4f33cdf",
-				"dweb:/ipfs/QmUKzHf7BGSwW6KmuEaZ9eENt3vTko1aWe2MyPHZZgCd7x"
+				"bzz-raw://242f6724cdc47185dd31de3c62e57efe2d8b3f45b49a03f7de21efd750513ebb",
+				"dweb:/ipfs/QmVjdjQuc8ftbuV4FBV8khMVqa7Nx5m4XuggRvD1L3XtWJ"
 			]
 		}
 	},

@@ -1,10 +1,34 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
 // Get contracts from the user
 // Withdrawal funds
 // Set a minimum funding value in USD
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
 
-import {PriceConverter} from "./PriceConverter.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+
+library PriceConverter{
+    function getPrice() internal view returns(uint256) {
+        // address 0x694AA1769357215DE4FAC081bf1f309aDC325306
+        // ABI
+        AggregatorV3Interface PriceFeed = AggregatorV3Interface(0xfEefF7c3fB57d18C5C6Cdd71e45D2D0b4F9377bF);
+        (,int256 price,,,) = PriceFeed.latestRoundData();
+        // Price of ETH in USD terms
+        return uint256(price) * 1e10;
+    }
+    function getConverstionRate(uint256 ethAmount) internal view returns(uint256){
+        // How much is 1 ETH??
+        // 2500_000000000000000000 (current ETH price)
+        uint256 ethPrice = getPrice();
+        // 2500_000000000000000000 * (1 ETH) 1_000000000000000000 / 1e18
+        // $2500 = 1 ETH
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1e18;
+        return ethAmountInUsd;
+    }
+
+    function getVersion () internal view returns (uint256){
+        return AggregatorV3Interface(0xfEefF7c3fB57d18C5C6Cdd71e45D2D0b4F9377bF).version();
+    }
+}
 
 // constant, immutable
 
@@ -75,6 +99,11 @@ contract FundMe {
             revert WithdrawalFailed();
         }
         // require(callSuccess, "Call failed");
+    }
+
+    function getVersion() public view returns (uint256) {
+        AggregatorV3Interface PriceFeed = AggregatorV3Interface(0xfEefF7c3fB57d18C5C6Cdd71e45D2D0b4F9377bF);
+        return PriceFeed.version();
     }
 
     modifier onlyOwner() {
