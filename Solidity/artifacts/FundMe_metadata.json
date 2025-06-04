@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.24+commit.e11b9ed9"
+		"version": "0.8.26+commit.8a97fa7a"
 	},
 	"language": "Solidity",
 	"output": {
@@ -19,6 +19,10 @@
 				"inputs": [],
 				"name": "WithdrawalFailed",
 				"type": "error"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "fallback"
 			},
 			{
 				"inputs": [],
@@ -97,6 +101,10 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
 			}
 		],
 		"devdoc": {
@@ -114,7 +122,7 @@
 		"compilationTarget": {
 			"Solidity/FundMe.sol": "FundMe"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "cancun",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -135,11 +143,11 @@
 			]
 		},
 		"Solidity/FundMe.sol": {
-			"keccak256": "0x16f97a55349ce80cf5c5b402c94b37e85e75bc5b808890eed9d1feb2d0fd732a",
+			"keccak256": "0x2fb3a103b1f9709844c269ecfc8482ff95e82b37b14212be71cdb6d1a88a6d4d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://714db22bc5714eb815f0644b4f45fbe6629d36e5a6cc1f11c6b8dc8924dbd293",
-				"dweb:/ipfs/QmYX4Zh5HeYjTYtyDdsXC9nQtZkyYraBSGqmVvKraAubmp"
+				"bzz-raw://905c6f19a9739dfe9ccdf8af5bb1463464b670071b6ba7ded2cc12455514e2fb",
+				"dweb:/ipfs/QmbempugK1tFQJ5cgXRzqQjt5tzc6AJwD9DSZ6ZUenJcDf"
 			]
 		},
 		"Solidity/PriceConverter.sol": {
