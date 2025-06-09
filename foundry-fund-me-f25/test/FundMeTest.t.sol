@@ -3,12 +3,15 @@ pragma solidity ^0.8.24;
 
 import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../src/FundMe.sol";
+import {DeployFundMe} from "../script/DeployFundMe.s.sol";
 
 contract FundMeTest is Test{
     FundMe fundMe;
 
     function setUp() external {
-        fundMe = new FundMe();
+        // fundMe = new FundMe(0x694AA1769357215DE4FAC081bf1f309aDC325306);
+        DeployFundMe deployFuneMe = new DeployFundMe();
+        fundMe = deployFuneMe.run();
     }
 
     function testMinimumDollarIsFive() public view {
@@ -16,7 +19,7 @@ contract FundMeTest is Test{
     }
 
     function testOwnerIsMsgSender() public view {
-        assertEq(fundMe.i_owner(), address(this));
+        assertEq(fundMe.i_owner(), msg.sender);
     }
 
     // What can we do to work with addresses outside of our system?
@@ -28,7 +31,7 @@ contract FundMeTest is Test{
     //    - Testing our code on a simulated blockchain
     // 4. Staging
     //    - Testing our code on a real environment
-    
+
     function testFundMeCanBeFunded() public {
         vm.deal(address(this), 1 ether);
         fundMe.fund{value: 1 ether}();
