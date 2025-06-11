@@ -1,47 +1,110 @@
-# Mastering Ethereum 🚀
+# Mastering Ethereum Smart Contracts with Foundry
 
-A guided, hands-on journey through *Cyfrin Updraft* & *Mastering Ethereum* by Andreas M. Antonopoulos and Gavin Wood — implemented by [Jacob Blemaster](https://github.com/j-ble).
+Welcome to the **MasteringEthereum** project — a hands-on learning repository for developing, testing, and deploying Ethereum smart contracts using [Foundry](https://book.getfoundry.sh/). This project follows examples and exercises inspired by the *Mastering Ethereum* book, adapted with modern development tools.
 
-## 🧾 Before You Start
+## 🛠️ Stack
 
-To run smart contracts in this project:
+- **[Foundry](https://github.com/foundry-rs/foundry)** – Blazing-fast toolkit for Ethereum development (written in Rust)
+  - `forge` – Testing framework
+  - `cast` – CLI for interacting with contracts
+  - `anvil` – Local Ethereum node (alternative to Ganache/Hardhat)
+  - `chisel` – Solidity REPL
 
-- Ensure you're using the **zkSync Sepolia Testnet**.
-- Move any contracts you wish to deploy into the `./contracts` directory.
+## 📁 Directory Structure
 
-This setup keeps the project organized and ensures compatibility with the intended test environment.
+```
+.
+├── contracts/       # Solidity smart contracts
+├── script/          # Deployment scripts
+├── src/             # Optional core contract logic (used in some Foundry setups)
+├── test/            # Contract unit tests (Forge)
+├── foundry.toml     # Foundry config file
+```
 
+## 🧪 Quick Start
 
-## 📘 About
-
-This repository contains practical implementations and experiments based on the **Mastering Ethereum** book. It is designed to reinforce key concepts in Ethereum development, including:
-
-- Ethereum architecture and accounts
-- Solidity smart contracts
-- Token standards (ERC-20, ERC-721)
-- Ethereum Virtual Machine (EVM)
-- Transactions, gas, and events
-- Web3 interactions
-
-Whether you're a beginner exploring Ethereum or a developer revisiting fundamentals, this repo is structured to provide clarity through code.
-
----
-
-## 🛠️ Tech Stack
-
-- **Solidity**: Smart contract language
-- **JavaScript**: For Web3 and test scripts
-- **Node.js & npm**: Project dependencies
-
----
-
-## 📂 Structure
+### 1. Install Foundry
 
 ```bash
-MasteringEthereum/
-├── Chapter01/        # Ethereum overview and tools
-├── Chapter02/        # Keys and addresses
-├── Chapter03/        # Ethereum clients and networks
-├── Contracts/        # Example smart contracts
-├── Scripts/          # Deployment and interaction scripts
-└── README.md         # You're here!
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+```
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/j-ble/MasteringEthereum.git
+cd MasteringEthereum
+```
+
+### 3. Build Contracts
+
+```bash
+forge build
+```
+
+### 4. Run Tests
+
+```bash
+forge test
+```
+
+### 5. Format Code
+
+```bash
+forge fmt
+```
+
+### 6. Launch Local Node
+
+```bash
+anvil
+```
+
+### 7. Deploy to a Network
+
+Update your private key and RPC URL before running the script:
+
+```bash
+forge script script/Counter.s.sol:CounterScript \
+  --rpc-url <your_rpc_url> \
+  --private-key <your_private_key> \
+  --broadcast
+```
+
+## ⛽ Gas Snapshots
+
+Benchmark contract gas usage with:
+
+```bash
+forge snapshot
+```
+
+## 🧰 Using Cast
+
+Use `cast` to interact with deployed contracts:
+
+```bash
+cast <subcommand>
+```
+
+Examples:
+
+```bash
+cast block-number --rpc-url <your_rpc_url>
+cast call <contract_address> "functionName(uint256)" 123 --rpc-url <your_rpc_url>
+```
+
+## 📚 Reference Docs
+
+- 🔗 [Foundry Book](https://book.getfoundry.sh/)
+- 📘 [Mastering Ethereum](https://github.com/ethereumbook/ethereumbook)
+
+## 👨‍💻 Author
+
+Jacob Blemaster – [@j-ble](https://github.com/j-ble)  
+Feel free to fork, star, and build on top of this repo as you follow along the *Mastering Ethereum* journey.
+
+---
+
+> “Winners and losers have the same goal. It’s the system that determines who gets there.” – Stay consistent. Stay building.
