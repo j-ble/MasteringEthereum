@@ -1,66 +1,110 @@
-## Foundry
+# Mastering Ethereum Smart Contracts with Foundry
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Welcome to the **MasteringEthereum** project — a hands-on learning repository for developing, testing, and deploying Ethereum smart contracts using [Foundry](https://book.getfoundry.sh/). This project follows examples and exercises inspired by the *Mastering Ethereum* book, adapted with modern development tools.
 
-Foundry consists of:
+## 🛠️ Stack
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- **[Foundry](https://github.com/foundry-rs/foundry)** – Blazing-fast toolkit for Ethereum development (written in Rust)
+  - `forge` – Testing framework
+  - `cast` – CLI for interacting with contracts
+  - `anvil` – Local Ethereum node (alternative to Ganache/Hardhat)
+  - `chisel` – Solidity REPL
 
-## Documentation
+## 📁 Directory Structure
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```
+.
+├── contracts/       # Solidity smart contracts
+├── script/          # Deployment scripts
+├── src/             # Optional core contract logic (used in some Foundry setups)
+├── test/            # Contract unit tests (Forge)
+├── foundry.toml     # Foundry config file
 ```
 
-### Test
+## 🧪 Quick Start
 
-```shell
-$ forge test
+### 1. Install Foundry
+
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
 ```
 
-### Format
+### 2. Clone the Repository
 
-```shell
-$ forge fmt
+```bash
+git clone https://github.com/j-ble/MasteringEthereum.git
+cd MasteringEthereum
 ```
 
-### Gas Snapshots
+### 3. Build Contracts
 
-```shell
-$ forge snapshot
+```bash
+forge build
 ```
 
-### Anvil
+### 4. Run Tests
 
-```shell
-$ anvil
+```bash
+forge test
 ```
 
-### Deploy
+### 5. Format Code
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```bash
+forge fmt
 ```
 
-### Cast
+### 6. Launch Local Node
 
-```shell
-$ cast <subcommand>
+```bash
+anvil
 ```
 
-### Help
+### 7. Deploy to a Network
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+Update your private key and RPC URL before running the script:
+
+```bash
+forge script script/Counter.s.sol:CounterScript \
+  --rpc-url <your_rpc_url> \
+  --private-key <your_private_key> \
+  --broadcast
 ```
+
+## ⛽ Gas Snapshots
+
+Benchmark contract gas usage with:
+
+```bash
+forge snapshot
+```
+
+## 🧰 Using Cast
+
+Use `cast` to interact with deployed contracts:
+
+```bash
+cast <subcommand>
+```
+
+Examples:
+
+```bash
+cast block-number --rpc-url <your_rpc_url>
+cast call <contract_address> "functionName(uint256)" 123 --rpc-url <your_rpc_url>
+```
+
+## 📚 Reference Docs
+
+- 🔗 [Foundry Book](https://book.getfoundry.sh/)
+- 📘 [Mastering Ethereum](https://github.com/ethereumbook/ethereumbook)
+
+## 👨‍💻 Author
+
+Jacob Blemaster – [@j-ble](https://github.com/j-ble)  
+Feel free to fork, star, and build on top of this repo as you follow along the *Mastering Ethereum* journey.
+
+---
+
+> “Winners and losers have the same goal. It’s the system that determines who gets there.” – Stay consistent. Stay building.
