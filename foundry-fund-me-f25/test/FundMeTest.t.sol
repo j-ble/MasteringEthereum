@@ -10,6 +10,7 @@ contract FundMeTest is Test{
     uint256 constant SEND_VALUE = 0.1 ether; // 100000000000000000 wei
     uint256 constant MINIMUM_USD = 5e18;
     uint256 constant STARTING_BALANCE = 10 ether;
+    uint256 constant GAS_PRICE = 1;
 
     address USER = makeAddr("user");
 
@@ -86,8 +87,13 @@ contract FundMeTest is Test{
         uint256 startingFundMeBalance = address(fundMe).balance;
 
         // Act
-        vm.prank(fundMe.getOwner());
+        // uint256 gasStart = gasleft(); // 1000
+        // vm.txGasPrice(GAS_PRICE);
+        vm.prank(fundMe.getOwner()); // c: 200
         fundMe.withdraw();
+
+        // uint256 gasEnd = gasleft(); // 800
+        // uint256 gasUsed = (gasStart - gasEnd) * tx.gasprice; // 200
 
         // Assert
         uint256 endingOwnerBalance = fundMe.getOwner().balance;
