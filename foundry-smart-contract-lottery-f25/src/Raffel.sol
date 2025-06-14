@@ -34,13 +34,18 @@ contract Raffel {
     error NotEnoughETH();
 
     uint256 private immutable i_entranceFee;
+    // @dev The duration of the raffle in seconds
+    uint256 private immutable i_interval;
     address payable[] private s_players;
+    uint256 private s_lastTimeStamp;
 
     /* Events */
     event RaffelEntered(address indexed player);
 
-    constructor(uint256 entranceFee) {
+    constructor(uint256 entranceFee, uint256 interval) {
         i_entranceFee = entranceFee;
+        i_interval = interval;
+        s_lastTimeStamp = block.timestamp;
     }
 
     function enterRaffle() public payable{
@@ -54,7 +59,9 @@ contract Raffel {
     }
 
     function pickWinner() public {
-
+        if ((block.timestamp - s_lastTimeStamp) < i_interval) { 
+            revert();
+        }
     }
 
     /** 
