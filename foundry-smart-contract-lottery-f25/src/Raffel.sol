@@ -9,6 +9,9 @@ pragma solidity ^0.8.19;
  */
 
 contract Raffel {
+    /* Errors */
+    error NotEnoughETH();
+
     uint256 private immutable i_entranceFee;
 
     constructor(uint256 entranceFee) {
@@ -16,7 +19,10 @@ contract Raffel {
     }
 
     function enterRaffle() public payable{
-
+        // require(msg.value >= i_entranceFee, "Not enough ETH to enter");
+        if(msg.value < i_entranceFee){
+            revert NotEnoughETH();
+        }
     }
 
     function pickWinner() public {
