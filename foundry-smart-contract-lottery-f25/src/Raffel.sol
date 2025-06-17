@@ -35,6 +35,7 @@ import {VRFV2PlusClient} from "lib/chainlink-brownie-contracts/contracts/src/v0.
 contract Raffle is VRFConsumerBaseV2Plus {
     /* Errors */
     error Raffle__SendMoreToEnterRaffle();
+    error Raffle__TransferFailed();
 
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint32 private immutable NUM_WORDS = 1;
@@ -46,6 +47,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     uint32 private immutable i_callbackGasLimit;
     address payable[] private s_players;
     uint256 private s_lastTimeStamp;
+    address private s_recentWinner;
 
     /* Events */
     event RaffelEntered(address indexed player);
@@ -82,21 +84,36 @@ contract Raffle is VRFConsumerBaseV2Plus {
             revert();
         }
         // Get our random number
-        VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
-            keyHash: i_keyHash,
-            subId: i_subscriptionId,
-            requestConfirmations: REQUEST_CONFIRMATIONS,
-            callbackGasLimit: i_callbackGasLimit,
-            numWords: NUM_WORDS,
-            extraArgs: VRFV2PlusClient._argsToBytes(
-                // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
-                VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
-            )
-        });
+        VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest(
+            {
+                keyHash: i_keyHash,
+                subId: i_subscriptionId,
+                requestConfirmations: REQUEST_CONFIRMATIONS,
+                callbackGasLimit: i_callbackGasLimit,
+                numWords: NUM_WORDS,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
+                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+                )
+            }
+        );
+        
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {}
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
+        // s_players = 10
+        // rng = 12
+        // 12 % 10 = 2 <- winner
+        uint256 indexOfWinner = randomWords[0] % s_players.length;
+        address payable recentWinner = s_players[indexOfWinner];
+        s_recentWinner = recentWinner;
+        (bool success, ) = recentWinner.call{value: address(this).balance}("");
+        if(!success) {
+            revert Raffle__TransferFailed();
+            // revert("Failed to send Ether");
+        }
+    }
 
     /**
      * Getter Functions
