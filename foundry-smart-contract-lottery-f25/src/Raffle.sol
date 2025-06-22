@@ -60,7 +60,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     RaffleState private s_raffleState;
 
     /* Events */
-    event RaffelEntered(address indexed player);
+    event RaffleEntered(address indexed player);
     event WinnerPicked(address indexed winner);
 
     constructor(
@@ -92,7 +92,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
         s_players.push(payable(msg.sender));
 
-        emit RaffelEntered(msg.sender);
+        emit RaffleEntered(msg.sender);
     }
 
     /**
