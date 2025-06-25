@@ -94,7 +94,8 @@ contract RaffleTest is Test {
         // Assert
         assert(!upkeepNeeded);
     }
-
+    // Challenge 1: 
+    // testCheckUpKeepReturnsFalseIfEnoughTimeHasPassed
     function testCheckUpKeepReturnsFalseIfRaffleIsNotOpen() public {
         // arrange
         vm.prank(PLAYER);
@@ -109,4 +110,43 @@ contract RaffleTest is Test {
         // Assert
         assert (!upkeepNeeded);
     } 
+
+    // Challenge 1: 
+    function testCheckUpKeepReturnsFalseIfEnoughTimeHasPassed() public {
+        // arrange
+        // Make isOpen=true, hasBalance=true, & hasPlayers=true
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        // Make timeHasPassed=false by not waiting the full interval
+        vm.warp(block.timestamp + interval - 1);
+        vm.roll(block.number + 1);
+        // act
+        // timeHasPassed -> false
+        // isOpen -> true
+        // hasBalance -> true
+        // hasPlayers -> true
+        // upkeepNeeded = false && true && true && true  -> which is false
+        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+        // assert
+        assert(!upkeepNeeded);
+    }
+    // testCheckUpKeepReturnsTrueWhenParametersAreGood
+    function testCheckUpKeepReturnsTrueWhenParametersAreGood() public {
+        // arrange
+        // Make isOpen=true, hasBalance=true, & hasPlayers=true
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        // Make timeHasPassed=true by waiting the full interval
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        // act
+        // timeHasPassed -> true
+        // isOpen -> true
+        // hasBalance -> true
+        // hasPlayers -> true
+        // upkeepNeeded = true && true && true && true  -> which is true
+        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+        // assert
+        assert(upkeepNeeded);
+    }
 }
