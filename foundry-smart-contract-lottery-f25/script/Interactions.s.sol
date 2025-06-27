@@ -18,12 +18,12 @@ contract CreateSubscription is Script {
     }
 
     function createSubscription(address vrfCoordinator, address account) public returns (uint256, address) {
-        console.log("Creating subsciption on chain Id: ", block.chainid);
+        // console.log("Creating subsciption on chain Id: ", block.chainid);
         vm.startBroadcast(account);
         uint256 subId = VRFCoordinatorV2_5Mock(vrfCoordinator).createSubscription();
         vm.stopBroadcast();
-        console.log("Your subscription Id: ", subId);
-        console.log("Please update the subscriptionId in the helper config");
+        // console.log("Your subscription Id: ", subId);
+        // console.log("Please update the subscriptionId in the helper config");
         return (subId, vrfCoordinator);
     }
 
@@ -44,9 +44,9 @@ contract FundSubscription is Script, CodeConstants {
     }
 
     function fundSubscription(address vrfCoordinator, uint256 subscriptionId, address linkToken, address account) public {
-        console.log("Funding subscription: ", subscriptionId);
-        console.log("Using vrfCoordinator: ", vrfCoordinator);
-        console.log("On ChainId: ", block.chainid);
+        // console.log("Funding subscription: ", subscriptionId);
+        // console.log("Using vrfCoordinator: ", vrfCoordinator);
+        // console.log("On ChainId: ", block.chainid);
 
         if(block.chainid == LOCAL_CHAIN_ID) {
             vm.startBroadcast();
@@ -74,9 +74,9 @@ contract AddConsumer is Script {
     }
 
     function addConsumer(address contractToAddToVrf, address vrfCoordinator, uint256 subId, address account) public {
-        console.log("Adding consumer to Contract: ", contractToAddToVrf);
-        console.log("To vrfCoordinator: ", vrfCoordinator);
-        console.log("On ChainId: ", block.chainid);
+        // console.log("Adding consumer to Contract: ", contractToAddToVrf);
+        // console.log("To vrfCoordinator: ", vrfCoordinator);
+        // console.log("On ChainId: ", block.chainid);
         vm.startBroadcast(account);
         VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(subId, contractToAddToVrf);
         vm.stopBroadcast();

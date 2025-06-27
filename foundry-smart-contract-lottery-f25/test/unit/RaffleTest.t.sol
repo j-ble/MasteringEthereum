@@ -14,12 +14,12 @@ contract RaffleTest is CodeConstants, Test {
     Raffle public raffle;
     HelperConfig public helperConfig;
 
-    uint256 entranceFee;
-    uint256 interval;
-    address vrfCoordinator;
-    bytes32 gasLane;
-    uint256 subscriptionId;
-    uint32 callbackGasLimit;
+    uint256 internal entranceFee;
+    uint256 internal interval;
+    address internal vrfCoordinator;
+    bytes32 internal gasLane;
+    uint256 internal subscriptionId;
+    uint32 internal callbackGasLimit;
 
     address public PLAYER = makeAddr("player");
     uint256 public constant STARTING_PLAYER_BALANCE = 10 ether;
@@ -283,4 +283,14 @@ contract RaffleTest is CodeConstants, Test {
         raffle.rawFulfillRandomWords(requestId, randomWords);
     }
 
+    function testRevertingReceiverFallback() public {
+        // arrange
+        RevertingReceiver mock = new RevertingReceiver();
+        vm.deal(address(mock), 1 ether);
+        // act / assert
+        (bool success, ) = address(mock).call{value: 1 ether}(
+            abi.encodeWithSignature("nonExistentFunction()")
+        );
+        assert(!success);
+    }
 }

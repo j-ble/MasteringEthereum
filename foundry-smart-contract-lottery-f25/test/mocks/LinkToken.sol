@@ -2,15 +2,15 @@
 // @dev This contract has been adapted to fit with foundry
 pragma solidity ^0.8.19;
 
-import {ERC20} from "@solmate/tokens/ERC20.sol";
+import {ERC20} from "../../lib/solmate/src/tokens/ERC20.sol";
 
 interface ERC677Receiver {
     function onTokenTransfer(address _sender, uint256 _value, bytes memory _data) external;
 }
 
 contract LinkToken is ERC20 {
-    uint256 constant INITIAL_SUPPLY = 1000000000000000000000000;
-    uint8 constant DECIMALS = 18;
+    uint256 public constant INITIAL_SUPPLY = 1000000000000000000000000;
+    uint8 public constant DECIMALS = 18;
 
     constructor() ERC20("LinkToken", "LINK", DECIMALS) {
         _mint(msg.sender, INITIAL_SUPPLY);
