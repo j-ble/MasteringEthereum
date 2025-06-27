@@ -8,6 +8,7 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {Vm} from "../../lib/forge-std/src/Vm.sol";
 import {VRFCoordinatorV2_5Mock} from "../../lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {CodeConstants} from "../../script/HelperConfig.s.sol";
+import {RevertingReceiver} from "../mocks/RevertingReceiver.sol";
 
 contract RaffleTest is CodeConstants, Test {
     Raffle public raffle;
@@ -249,6 +250,37 @@ contract RaffleTest is CodeConstants, Test {
         assert(uint256(raffleState) == 0);
         assert(winnerBalance == prize + winnerStartingBalance);
         assert(endingTimeStamp > startingTimeStamp);
+    }
+
+    function testGetEntranceFee() public view {
+        // Assert that the entrance fee is what we expect
+        uint256 expectedEntranceFee = entranceFee;
+        assertEq(raffle.getEntranceFee(), expectedEntranceFee);
+    }
+
+    function testFullFillRandomWordsRevertsOnTransferFailure() public {
+        // arrange
+        vm.warp(raffle.getLastTimeStamp() + interval + 1);
+        vm.deal(address(raffle), STARTING_PLAYER_BALANCE + raffle.getEntranceFee() * 2);
+        RevertingReceiver mockRevertingWinner = new RevertingReceiver();
+        vm.deal(address(mockRevertingWinner), entranceFee);
+        vm.prank(address(mockRevertingWinner));
+        raffle.enterRaffle{value: entranceFee}();
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+
+        // act
+        vm.recordLogs();
+        raffle.performUpkeep("");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        uint256 requestId = uint256(entries[1].topics[1]);
+        uint256[] memory randomWords = new uint256[](1);
+        randomWords[0] = 0;
+
+        // assert
+        vm.expectRevert(Raffle.Raffle__TransferFailed.selector);
+        vm.prank(vrfCoordinator);
+        raffle.rawFulfillRandomWords(requestId, randomWords);
     }
 
 }
