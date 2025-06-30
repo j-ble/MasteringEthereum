@@ -22,3 +22,6 @@
 [submodule "foundry-smart-contract-lottery-f25/lib/foundry-devops"]
 	path = foundry-smart-contract-lottery-f25/lib/foundry-devops
 	url = https://github.com/cyfrin/foundry-devops
+[submodule "foundry-erc20-f25/lib/forge-std"]
+	path = foundry-erc20-f25/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
