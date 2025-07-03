@@ -12,10 +12,10 @@ contract DeployBasicNftTest is Test {
         deployer = new DeployBasicNft();
     }
 
-    // This test runs the script and verifies it returns a valid contract address.
+    // This test runs the script and verifies it returns a valid contract address
     function testScriptDeploysContract() public {
         BasicNft deployedNft = deployer.run();
-        // Assert that the deployment returned a non-zero address, proving success.
+        // Assert that the deployment returned a non-zero address, proving success
         assertNotEq(address(deployedNft), address(0));
     }
 }
