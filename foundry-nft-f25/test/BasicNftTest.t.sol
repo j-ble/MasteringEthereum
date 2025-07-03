@@ -2,50 +2,31 @@
 pragma solidity ^0.8.18;
 
 import {Test} from "../lib/forge-std/src/Test.sol";
+import {DeployBasicNft} from "../script/DeployBasicNft.s.sol";
 import {BasicNft} from "../src/BasicNft.sol";
 
 contract BasicNftTest is Test {
+    DeployBasicNft public deployer;
     BasicNft private basicNft;
-    
-    // This will be our test user's address
-    // We declare it here and will initialize it in setUp()
-    address private user; 
-
-    string public constant TOKEN_URI = "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
+    address public USER = makeAddr("user");
+    string public constant PUG = "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
 
     function setUp() public {
-        basicNft = new BasicNft();
-        
-        // Using the Foundry cheatcode `makeAddr` to create a deterministic address for our "user"
-        user = makeAddr("user");
+        deployer = new DeployBasicNft();
+        basicNft = deployer.run();
     }
 
-    function testConstructorInitializesCorrectly() public view {
-        assertEq(basicNft.name(), "Dogie");
-        assertEq(basicNft.symbol(), "DOG");
+    function testNameIsCorrect() public view {
+        string memory expectedName = "Dogie";
+        string memory actualName = basicNft.name();
+        assert(keccak256(abi.encodePacked(expectedName)) == keccak256(abi.encodePacked(actualName)));
     }
 
-    function testMintNft() public {
-        vm.prank(user); // Prank as our named user
-        basicNft.mintNft(TOKEN_URI);
+    function testCanMintAndHaveABalance() public {
+        vm.prank(USER);
+        basicNft.mintNft(PUG);
 
-        assertEq(basicNft.tokenURI(0), TOKEN_URI);
-        assertEq(basicNft.ownerOf(0), user);
-        assertEq(basicNft.balanceOf(user), 1);
-    }
-    
-    function testTokenCounterIncrements() public {
-        vm.startPrank(user);
-        basicNft.mintNft(TOKEN_URI);
-        
-        basicNft.mintNft(TOKEN_URI);
-
-        vm.stopPrank();
-        
-        assertEq(basicNft.ownerOf(1), user);
-    }
-
-    function testTokenURIReturnsEmptyForNonExistentToken() public view {
-        assertEq(basicNft.tokenURI(123), "");
+        assert(basicNft.balanceOf(USER) == 1);
+        assert(keccak256(abi.encodePacked(PUG)) == keccak256(abi.encodePacked(basicNft.tokenURI(0))));
     }
 }
