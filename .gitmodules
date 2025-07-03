@@ -34,3 +34,6 @@
 [submodule "foundry-nft-f25/lib/openzeppelin-contracts"]
 	path = foundry-nft-f25/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "foundry-nft-f25/lib/foundry-devops"]
+	path = foundry-nft-f25/lib/foundry-devops
+	url = https://github.com/Cyfrin/foundry-devops
