@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {Test} from "../lib/forge-std/src/Test.sol";
-import {MoodNft} from "../src/MoodNft.sol";
-import {console} from "../lib/forge-std/src/console.sol";
+import {Test} from "../../lib/forge-std/src/Test.sol";
+import {MoodNft} from "../../src/MoodNft.sol";
+import {console} from "../../lib/forge-std/src/console.sol";
 
 contract MoodNftTest is Test {
     MoodNft moodNft;
@@ -22,5 +22,15 @@ contract MoodNftTest is Test {
         vm.prank(USER);
         moodNft.mintNft();
         console.log(moodNft.tokenURI(0));
+    }
+
+    function testFlipTokenToSad() public {
+        vm.prank(USER);
+        moodNft.mintNft();
+
+        vm.prank(USER);
+        moodNft.flipMood(0);
+
+        assert(keccak256(abi.encodePacked(moodNft.tokenURI(0))) == keccak256(abi.encodePacked(SAD_SVG_URI)));
     }
 }
