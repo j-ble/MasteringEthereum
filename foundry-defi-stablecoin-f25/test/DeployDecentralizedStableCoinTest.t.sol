@@ -32,8 +32,10 @@ contract DeployDecentralizedStableCoinTest is Test {
         // 2. There must be code at that address (conttract deployed)
         uint256 codeSize;
         assembly {
+            // checks byte code size at address 'dsc'
             codeSize := extcodesize(dsc)
         }
+        // Code size must be greater than zero (exitsts on the test-chain)
         assertGt(codeSize, 0, "no code deployed");
     }
 }
