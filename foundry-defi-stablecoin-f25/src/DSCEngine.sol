@@ -58,14 +58,18 @@ contract DSCEngine is ReentrancyGuard{
     error DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__TransferFailed();
+    error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
 
     //////////////////////////////////
     //      State Variables         //
     //////////////////////////////////
-    uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
-    uint256 private constant PRECISION = 1e18;
+    uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10; 
+    uint256 private constant PRECISION = 1e18; 
+    uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant MIN_HEALTH_FACTOR = 1; 
 
-    /**
+    /** 
      * s_priceFeeds maps a collateral token address to a USD price feed oracle (Chainlink).
      * If a token is *not* present in this mapping, it is treated as "not allowed".
      * 
@@ -78,8 +82,8 @@ contract DSCEngine is ReentrancyGuard{
      * for every whitelisted token.
      */
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
-
-    mapping(address user => uint256 amountDccMinted) private s_DSCMinted;
+    // Minting Debt
+    mapping(address user => uint256 amountDscMinted) private s_DSCMinted;
     address[] private s_collateralTokens;
 
     /**
@@ -211,9 +215,10 @@ contract DSCEngine is ReentrancyGuard{
     * @notice they must have more collateral value than the minimum threshold.
     */
     function mintDsc(uint256 amountDscToMint) external moreThanZero(amountDscToMint) nonReentrant{
+        // Keep track of how much DSC they minted
         s_DSCMinted[msg.sender] += amountDscToMint;
         // if they minted to much, revert
-        revertIfHealthFactorIsBroken(msg.sender);
+        _revertIfHealthFactorIsBroken(msg.sender);
     }
         
     function burnDsc() external {}
@@ -231,6 +236,7 @@ contract DSCEngine is ReentrancyGuard{
     }
 
     /**
+     * @dev Aave documentatio for 'Health Factor': https://aave.com/help/borrowing/liquidations
      * Retuns how close to liquidation a user is
      * If a user goes below 1, they can get liquidated
      */
@@ -238,19 +244,31 @@ contract DSCEngine is ReentrancyGuard{
         // 1. Total DSC minted
         // 2. Total collateral VALUE
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        // $1000 ETH * 50 = 50,000 / 100 = 500
+        // $150 ETH / 100 DSC = 1.5
+        // 150 * 50 = 7500 / 100 = (75 / 100) < 1
+
+        // $1000 / 100 DSC
+        // 1000 * 50 = 50,000 / 100 = (500 / 100) > 1
+        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
+        // return (collateralValueInUsd / totalDscMinted); 
     }
 
+    // 1. Check health factor (do they have enough collateral?)
+    // 2. Revert if they don't
     function _revertIfHealthFactorIsBroken(address user) internal view {
-        // 1. Check health factor (do they have enough collateral?)
-        // 2. Revert if they don't
-
+        uint256 userHealthFactor = _healthFactor(user);
+        if(userHealthFactor < MIN_HEALTH_FACTOR) {
+            revert DSCEngine__BreaksHealthFactor(userHealthFactor);
+        }
     }
 
     ////////////////////////////////////////////////////       
     //      Public & External View Functions          //
     ////////////////////////////////////////////////////
     function getAccountCollateralValue(address user) public view returns(uint256 totalCollateralValueInUsd) {
-        // loop through each collateral token, get the anoubt they have deposited, and map it to
+        // loop through each collateral token, get the amount they have deposited, and map it to
         // the price, to get the USD value
         for(uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
@@ -260,11 +278,16 @@ contract DSCEngine is ReentrancyGuard{
         return totalCollateralValueInUsd;
     }
 
+    /**
+     * @notice Covert a {token, amount} pair to 18 decimal USD value using
+     *         Chainlink price feed return 8 decimal numbers, so we use
+     *         ADDITIONAL_FEED_PRECISION to scale to 18 decimals.
+     */
     function getUsdValue(address token, uint256 amount) public view returns(uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price, , , ) = priceFeed.latestRoundData();
-        // 1ETh = $1000
-        // The return value from CL will be 1000 * 1e8
-        return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION; // (1000 * 1e8 * (1e10)) * 1000 * 1e18;
+        // 1ETH = $2500
+        // The return value from Chainlink will be 8 decimal numbers, so we use ADDITIONAL_FEED_PRECISION to scale to 18 decimals.
+        return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 }
