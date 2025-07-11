@@ -8,8 +8,8 @@ pragma solidity ^0.8.18;
  * reports 100 % statement *and* 100 % branches.
  */
 
-import {Test} from "../lib/forge-std/src/Test.sol";
-import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
+import {Test} from "../../lib/forge-std/src/Test.sol";
+import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 contract DecentralizedStableCoinTest is Test {
     /**

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {Test} from "../lib/forge-std/src/Test.sol";
-import {DeployDecentralizedStableCoin} from "../script/DeployDecentralizedStableCoin.s.sol";
-import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
+import {Test} from "../../lib/forge-std/src/Test.sol";
+import {DeployDecentralizedStableCoin} from "../../script/DeployDecentralizedStableCoin.s.sol";
+import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 /**
  * Tests that the script DeployDecentralizedStableCoin.s.sol really does deploys
