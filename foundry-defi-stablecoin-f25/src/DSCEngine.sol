@@ -99,6 +99,7 @@ contract DSCEngine is ReentrancyGuard{
     // Emitting granular events makes it easy for off-chain indexers/dApps to
     // reconstruct protocol state. 
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralRedeemed( address indexed user, address indexed token, uint256 indexed amount);
 
     /////////////////////////
     //      Modifers       //
@@ -209,17 +210,39 @@ contract DSCEngine is ReentrancyGuard{
         }
     }
 
-    function redeemCollateralForDsc() external {}
+    /**
+     * @param tokenCollateralAddress The collateral address to redeem
+     * @param amountCollateral The amount of collateral to redeem
+     * @param amountDscToBurn The amount of DSC to burn
+     * This function burns DSC and redeems underlying collateral in one transaction
+     */
+    function redeemCollateralForDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256, uint256 amountDscToBurn) external {
+        burnDsc(amountDscToBurn);
+        redeemCollateral(tokenCollateralAddress, amountCollateral);
+        // redeemCollateral already check health factor
+    }
 
     // Example of value of collateral dropping to much:
     // $2000 ETH -> $400 ETH
     // $500 DSC -> Liquidated
-
     // Example of setting a %150 threshold:
     // $2000 ETH -> MUST HAVE $750 ETH 
     // $500 DSC
 
-    function redeemCollateral() external {}
+    // In order to redeem collateral:
+    // 1. health factor must be > 1 AFTER collateral pulled
+    // DRY: Don't Repeat Yourself
+    // CEI: Check, Effects, Interact
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral) public moreThanZero(amountCollateral) nonReentrant {
+        // 100 - 1000 (revert)
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+        if(!success) {
+            revert DSCEngine__TransferFailed();
+        }
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
 
     // check if collateral value > DSC amount
     /**
@@ -237,8 +260,18 @@ contract DSCEngine is ReentrancyGuard{
             revert DSCEngine__MintingDscFailed();
         }
     }
-        
-    function burnDsc() external {}
+
+    // Do we need to check if this breaks health factor?
+    function burnDsc(uint256 amount) public moreThanZero(amount) nonReentrant {
+        s_DSCMinted[msg.sender] -= amount;
+        bool success = i_dsc.transferFrom(msg.sender, address(this), amount);
+        // This condition is hypothetically unreachable.
+        if(!success) {
+            revert DSCEngine__TransferFailed();
+        }
+        i_dsc.burn(amount);
+        _revertIfHealthFactorIsBroken(msg.sender); // I do not think this would ever hit...
+    }
 
     function liquidate() external {}
 
