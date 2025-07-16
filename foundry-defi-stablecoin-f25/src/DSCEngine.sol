@@ -238,8 +238,21 @@ contract DSCEngine is ReentrancyGuard{
     // CEI: Check, Effects, Interact
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral) public moreThanZero(amountCollateral) nonReentrant {
         // 100 - 1000 (revert)
-        _redeemCollateral(msg.sender, msg.sender, tokenCollateralAddress, amountCollateral);
+        // --- CHECKS & EFFECTS ---
+        // This is a key step. We temporarily subtract the collateral from our accounting
+        // to calculate what the health factor will be.
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        // Now we check the health factor based on this temporary, hypothetical state.
+        // If it is bad, the transation will revert, and this state change will be rolled back. 
         _revertIfHealthFactorIsBroken(msg.sender);
+        // --- INTERACT ---
+        //  The health factor check passed. It is now safe to interact with the external contract.
+        // We send the collateral back to the user.
+        emit CollateralRedeemed(msg.sender, msg.sender, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+        if(!success) {
+            revert DSCEngine__TransferFailed();
+        }
     }
 
     // check if collateral value > DSC amount
@@ -364,13 +377,18 @@ contract DSCEngine is ReentrancyGuard{
         // 1. Total DSC minted
         // 2. Total collateral VALUE
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
-        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        // If a user has no debt, they are infinitely healthy
+        if (totalDscMinted == 0) {
+            // Return the maximum possible uint256 value
+            return type(uint256).max;
+        }
         // $1000 ETH * 50 = 50,000 / 100 = 500
         // $150 ETH / 100 DSC = 1.5
         // 150 * 50 = 7500 / 100 = (75 / 100) < 1
 
         // $1000 / 100 DSC
         // 1000 * 50 = 50,000 / 100 = (500 / 100) > 1
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
         // return (collateralValueInUsd / totalDscMinted); 
     }
@@ -387,6 +405,17 @@ contract DSCEngine is ReentrancyGuard{
     ////////////////////////////////////////////////////       
     //      Public & External View Functions          //
     ////////////////////////////////////////////////////
+    function getLiquidationThreshold() external pure returns (uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
+
+    function getPrecision() external pure returns (uint256) {
+        return PRECISION;
+    }
+
+    function getLiquidationPrecision() external pure returns (uint256) {
+        return LIQUIDATION_PRECISION;
+    }
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns(uint256) {
         // price of ETH (token)
         // $/ETH ETH??
@@ -419,5 +448,9 @@ contract DSCEngine is ReentrancyGuard{
         // 1ETH = $2500
         // The return value from Chainlink will be 8 decimal numbers, so we use ADDITIONAL_FEED_PRECISION to scale to 18 decimals.
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
+    }
+
+    function getAccountInformation(address user) external view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
+        (totalDscMinted, collateralValueInUsd) = _getAccountInformation(user); 
     }
 }
