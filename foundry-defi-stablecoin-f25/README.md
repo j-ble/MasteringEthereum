@@ -1,16 +1,25 @@
-1. (Relative Stability) Anchored or Pegged -> $1.00\
-    1. Chainlink Price Feed
-    2. Set a functino exchange ETH & BTC & XRP -> $$$
-2. Stability Mechanism (Mintint): Algorithmic (Decentralized)
-    1. People can only mint stablecoin with enough collateral (coded)
-3. Collateral: Exogenous (Crypto)
-    1. wETH
-    2. wBTC
-    3. wXRP
+# Decentralized Stablecoin (DSC)
 
-## Foundry
+This project implements a decentralized, crypto-backed stablecoin (DSC) using the Foundry framework. The stablecoin is designed to maintain a 1:1 peg to the US Dollar.
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Core Concepts
+
+1.  **Relative Stability**: The stablecoin is pegged to $1.00 USD. This is achieved by using Chainlink Price Feeds to get real-time price information for collateral assets.
+2.  **Algorithmic Stability Mechanism**: The system is algorithmic and decentralized. Users can only mint new stablecoins when they provide a sufficient amount of collateral.
+3.  **Exogenous Collateral**: The stablecoin is backed by other cryptocurrencies. The accepted collateral types are:
+    *   Wrapped Ether (wETH)
+    *   Wrapped Bitcoin (wBTC)
+
+## Testing with Foundry
+
+This project uses Foundry for smart contract development and testing.
+
+*   **Stateless Fuzzing**: `forge test` is used for fuzz testing, which involves calling functions with random data to check for vulnerabilities.
+*   **Stateful Fuzzing**: Invariant tests are used to check that specific properties of the smart contracts hold true across a sequence of random function calls.
+
+## Project Structure
+
+This project uses the following tools from the Foundry toolkit:
 
 Foundry consists of:
 
