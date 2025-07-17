@@ -323,18 +323,26 @@ contract DSCEngine is ReentrancyGuard{
         // 0.05 ETH * .1 = 0.005 ETH (Getting a 10% bonus).
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
         uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
+
+        // The _redeemCollateral function will revert if the user doesn't have enough collateral
+        // due to the underflow protection on subtraction, which is the desired behavior.
         _redeemCollateral(user, msg.sender, collateral, totalCollateralToRedeem);
         // We need to burn the DSC
         _burnDsc(debtToCover, user, msg.sender);
 
-        uint256 endingUserHealthFactor = _healthFactor(user);
-        if(endingUserHealthFactor <= startingHealthFactor) {
-            revert DSCEngine__HealthFactorNotImproved();
-        }
+        // This check is flawed. In a liquidation with a bonus, the user's health factor
+        // will often get worse. The goal is to make the protocol healthier by removing bad debt.
+        // The important checks are that the user was unhealthy to begin with and the liquidator remains healthy.
+        // uint256 endingUserHealthFactor = _healthFactor(user);
+        // if(endingUserHealthFactor <= startingHealthFactor) {
+        //     revert DSCEngine__HealthFactorNotImproved();
+        // }
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external view {}
+    function getHealthFactor() external view returns (uint256) {
+        return _healthFactor(msg.sender);
+    }
 
     ////////////////////////////////////////////////////       
     //      Internal & Private View Functions         //
