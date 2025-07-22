@@ -413,6 +413,10 @@ contract DSCEngine is ReentrancyGuard{
     ////////////////////////////////////////////////////       
     //      Public & External View Functions          //
     ////////////////////////////////////////////////////
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
     function getLiquidationThreshold() external pure returns (uint256) {
         return LIQUIDATION_THRESHOLD;
     }

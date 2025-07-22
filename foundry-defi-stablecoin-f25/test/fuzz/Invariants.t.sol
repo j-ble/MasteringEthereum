@@ -8,6 +8,7 @@ import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {HelperConfig} from "../../src/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Handler} from "./Handler.t.sol";
 
 // Have our invariant aka properties that should always hold true
 
@@ -23,12 +24,15 @@ contract Invariants is StdInvariant, Test {
     address wxrp;
     address weth;
     address wbtc;
+    Handler handler;
 
     function setUp() external {
         deployer = new DeployDSC();
         (dsc, engine, config) = deployer.run();
         (,,, weth, wbtc, wxrp,) = config.activeNetworkConfig();
-        targetContract(address(engine));
+        handler = new Handler(engine, dsc);
+        targetContract(address(handler));
+        // targetContract(address(engine));
     }
 
     function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {

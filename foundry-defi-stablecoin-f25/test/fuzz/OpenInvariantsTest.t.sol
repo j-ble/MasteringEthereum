@@ -1,5 +1,5 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.18;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
 
 // import {Test, console} from "../../lib/forge-std/src/Test.sol";
 // import {StdInvariant} from "../../lib/forge-std/src/StdInvariant.sol";
