@@ -428,6 +428,10 @@ contract DSCEngine is ReentrancyGuard{
     function getLiquidationPrecision() external pure returns (uint256) {
         return LIQUIDATION_PRECISION;
     }
+
+    function getCollateralBalanceOfUser(address user, address token) external view returns(uint256) {
+        return s_collateralDeposited[user][token];
+    }
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns(uint256) {
         // price of ETH (token)
         // $/ETH ETH??
