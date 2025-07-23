@@ -47,6 +47,22 @@ contract Handler is Test {
         wxrp = ERC20Mock(collateralTokens[2]);
     }
 
+    function mintDsc(uint256 amount) public {
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = engine.getAccountInformation(msg.sender);
+
+        int256 maxDscToMint = (int256(collateralValueInUsd) / 2) - int256(totalDscMinted);
+        if(maxDscToMint < 0) {
+            return;
+        }
+        amount = bound(amount, 0, uint256(maxDscToMint));
+        if (amount == 0 ) {
+            return;
+        }
+        vm.startPrank(msg.sender);
+        engine.mintDsc(amount);
+        vm.stopPrank();        
+    }
+
     /**
      * @notice Models a user depositing collateral into the DSCEngine.
      * @dev This function implements the "On-the-Fly User"/ "Stateless" pattern. For each call,
