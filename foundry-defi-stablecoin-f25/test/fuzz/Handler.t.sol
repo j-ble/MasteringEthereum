@@ -76,13 +76,39 @@ contract Handler is Test {
         vm.stopPrank();
     }
 
+    /**
+     * @notice Models a user redeeming their deposited collateral from the DSCEngine.
+     * @dev This function models a STATEFUL user interaction, which is critical for
+     * testing the full deposit -> redeem lifecycle.
+     *
+     * Unlike `depositCollateral`, this function does NOT use the "On-the-Fly User"
+     * pattern (no `vm.prank` or minting). Instead, it relies on the fuzzer to have
+     * built up state in previous steps (i.e., by calling `depositCollateral`).
+     *
+     * The key to preventing reverts is to query the protocol for the `msg.sender`'s
+     * ACTUAL, current collateral balance and then use `bound()` to ensure we only
+     * attempt to redeem an amount they legitimately have. This makes the fuzzer
+     * highly efficient at testing valid redemption scenarios.
+     *
+     * @param collateralSeed A random value from the fuzzer to select which collateral to redeem.
+     * @param amountCollateral A random value from the fuzzer for the redemption amount.
+     */
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
+        // Select which collateral type to attempt to redeem based on the fuzzer's input.
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        // Query the DSCEngine to find the true, current balance of this user (`msg.sender`).
+        // This is the absolute maximum they could possibly redeem.
         uint256 maxCollateralToRedeem = engine.getCollateralBalanceOfUser(address(collateral), msg.sender);
+        // Constrain the fuzzer's input to a valid range.
+        // The amount must be between 0 and the actual available balance.
+        // This is the core technique that prevents reverts from trying to redeem too much.
         amountCollateral = bound(amountCollateral, 0, maxCollateralToRedeem);
         if (amountCollateral == 0) {
             return;
         }
+        // Call the actual `redeemCollateral` function on the engine.
+        // Because of the bounding above, this call is now guaranteed to be valid
+        // from the perspective of the user's balance.
         engine.redeemCollateral(address(collateral), amountCollateral);
     }
 
