@@ -13,6 +13,7 @@ import {Test} from "../../lib/forge-std/src/Test.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.t.sol";
 
 // Handler is going to narrow down the way we call functions
 
@@ -25,6 +26,10 @@ contract Handler is Test {
     ERC20Mock weth;
     ERC20Mock wbtc;
     ERC20Mock wxrp;
+
+    uint256 public timesMintIsCalled;
+    address[] public usersWithCollateralDeposited;
+    MockV3Aggregator public ethUsdPriceFeed;
 
     // A large but reasonable upper bound for fuzzed inputs to prevent overflow
     // and keep tests within a realistic domain. `type(uint96).max` is a common choice.
@@ -45,10 +50,16 @@ contract Handler is Test {
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
         wxrp = ERC20Mock(collateralTokens[2]);
+
+        ethUsdPriceFeed = MockV3Aggregator(engine.getCollateralTokenPriceFeed(address(weth))); 
     }
 
-    function mintDsc(uint256 amount) public {
-        (uint256 totalDscMinted, uint256 collateralValueInUsd) = engine.getAccountInformation(msg.sender);
+    function mintDsc(uint256 amount, uint256 addressSeed) public {
+        if(usersWithCollateralDeposited.length == 0) {
+            return;
+        }
+        address sender = usersWithCollateralDeposited[addressSeed % usersWithCollateralDeposited.length];
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = engine.getAccountInformation(sender);
 
         int256 maxDscToMint = (int256(collateralValueInUsd) / 2) - int256(totalDscMinted);
         if(maxDscToMint < 0) {
@@ -58,9 +69,11 @@ contract Handler is Test {
         if (amount == 0 ) {
             return;
         }
-        vm.startPrank(msg.sender);
+        vm.startPrank(sender);
         engine.mintDsc(amount);
         vm.stopPrank();        
+        // double push
+        usersWithCollateralDeposited.push(sender);
     }
 
     /**
@@ -147,4 +160,10 @@ contract Handler is Test {
             return wxrp;
         }
     }
+
+    // This breaks our invariant test suite!!!
+    // function updateCollateralPrice(uint96 newPrice) public {
+    //     int256 newPriceInt = int256(uint256(newPrice));
+    //     ethUsdPriceFeed.updateAnswer(newPriceInt);
+    // }
 }

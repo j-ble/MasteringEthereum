@@ -51,7 +51,14 @@ contract Invariants is StdInvariant, Test {
         console.log("wbtc Value: ", wbtcValue);
         console.log("wxrp Value: ", wxrpValue);
         console.log("totalSupply: ", totalSupply);
+        console.log("Times mint called: ", handler.timesMintIsCalled());
 
         assert ((wethValue + wbtcValue + wxrpValue) >= totalSupply);
+    }
+
+    // Forge inspect DSCEngine methods
+    function invariant_gettersShouldNotRevert() public view {
+        engine.getCollateralTokens();
+        engine.getPrecision();
     }
 }
