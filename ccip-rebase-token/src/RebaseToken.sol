@@ -79,22 +79,48 @@ contract RebaseToken is ERC20 {
         emit InterestRateSet(_newInterestRate);
     }
     
+    /**
+     * @notice Mint the user tokens when they deploy into the vault
+     * @param _to The user to mint the tokens to 
+     * @param _amount The amount of tokens to mint
+     */
     function mint(address _to, uint256 _amount) external {
         _mintAccuredInterest(_to);
         s_userInterestRate[_to] = s_interestRate;
         _mint(_to, _amount);
     }
 
+    /**
+     * @notice Burn the user tokens when they withdraw from the vault
+     * @param _from The user to burn the tokens from
+     * @param _amount The amount of tokens to burn
+     */
+    function burn(address _from, uint256 _amount) external {
+        if (_amount == type(uint256).max) {
+            _amount = balanceOf(_from);
+        }
+        _mintAccuredInterest(_from);
+        _burn(_from, _amount);
+    }
+
     /////////////////////////
     //  Internal Functions //
     /////////////////////////
+    /**
+     * @notice Mint the accrued interest to the user since the last time they interacted with the protocol (e.g. burn, mint, transfer)
+     * @param _user The user to mint the accrued interest to
+     */
     function _mintAccuredInterest(address _user) internal {
-        // (1) find current balance of rebase token that have been minted to the user -> principal
+        // (1) find current balance of rebase token that have been minted to the user -> principal balance
+        uint256 previousPrincipalBalance = super.balanceOf(_user);
         // (2) calculate their current balance including any interest -> balanceOf
+        uint256 currentBalance = balanceOf(_user);
         // calculate the number of tokens that need to be minted to the user (2) - (1)
-        // call _mint to mint the tokens to the user
+        uint256 balanceIncrease = currentBalance - previousPrincipalBalance;
         // set the users last updated timestamp
         s_userLastUpdatedTimestamp[_user] = block.timestamp;
+        // call _mint to mint the tokens to the user
+        _mint(_user, balanceIncrease);
     }
 
     /////////////////////////
