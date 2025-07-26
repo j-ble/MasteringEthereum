@@ -22,8 +22,14 @@ pragma solidity ^0.8.24;
 // private
 // view & pure functions
 
+/////////////////////
+//     Imports     //
+/////////////////////
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+//////////////////////////////////////////////
+//     interfaces, libraries, contracts     //
+//////////////////////////////////////////////
 /**
  * @title RebaseToken
  * @author Jacob Blemaster
@@ -32,9 +38,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @notice The interest rate in the smart contract can only decrease over time.
  * @notice Each user will have their own interest rate the is the global interest rate.
  */
-
 contract RebaseToken is ERC20 {
-
     /////////////////////
     //      Errors     //
     /////////////////////
