@@ -104,6 +104,46 @@ contract RebaseToken is ERC20 {
     }
 
     /////////////////////////
+    //  Public Functions   //
+    /////////////////////////
+    /**
+     * @notice Transfer tokens from one user to another
+     * @param _recipient The user to transfer the tokens to
+     * @param _amount The amount of tokens to transfer
+     * @return True if the transfer was successful
+     */
+    function transfer(address _recipient, uint256 _amount) public override returns (bool) {
+        _mintAccuredInterest(msg.sender);
+        _mintAccuredInterest(_recipient);
+        if (_amount == type(uint256).max) {
+            _amount = balanceOf(msg.sender);
+        }
+        if (balanceOf(_recipient) == 0) {
+            s_userInterestRate[_recipient] = s_userInterestRate[msg.sender];
+        }
+        return super.transfer(_recipient, _amount);
+    }
+
+    /**
+     * @notice Tranfer tokens from one user to another
+     * @param _sender The user to transfer the tokens from 
+     * @param _recipient The user to transfer the tokens to
+     * @param _amount The amount of tokens to transfer
+     * @return True if the transfer was successful
+     */
+    function transferFrom(address _sender, address _recipient, uint256 _amount) public override returns (bool) {
+        _mintAccuredInterest(_sender);
+        _mintAccuredInterest(_recipient);
+        if (_amount == type(uint256).max) {
+            _amount = balanceOf(_sender);
+        }
+        if (balanceOf(_recipient) == 0) {
+            s_userInterestRate[_recipient] = s_userInterestRate[_sender];
+        }
+        return super.transferFrom(_sender, _recipient, _amount);
+    }
+
+    /////////////////////////
     //  Internal Functions //
     /////////////////////////
     /**
@@ -136,6 +176,14 @@ contract RebaseToken is ERC20 {
     }
 
     /**
+     * @notice Get the interest rate that is currently set for the contract. Any future depositors will recieve this interest rate
+     * @return The interest rate for the contract
+     */
+    function getInerestRate() external view returns (uint256) {
+        return s_interestRate;
+    }
+
+    /**
      * Calculate the balance for the user including the interest that has accumulated since the last update.
      * (principal balance) + some interest that has accured
      * @param _user The user to calculate the balance for
@@ -164,5 +212,14 @@ contract RebaseToken is ERC20 {
         // 10 + (10 * 0.5 * 2)
         uint256 timeElapsed = block.timestamp - s_userLastUpdatedTimestamp[_user];
         linearInterest = (PRECISION_FACTOR + (s_userInterestRate[_user] * timeElapsed));
+    }
+
+    /**
+     * @notice Get the principle balance of a user. This is the number of tokens that have been minted to the user, not including any interest that has been accrued.
+     * @param _user The user to get the principle balance for
+     * @return The principle balance of the user
+     */
+    function principleBalanceOf(address _user) external view returns (uint256) {
+        return super.balanceOf(_user);
     }
 }
