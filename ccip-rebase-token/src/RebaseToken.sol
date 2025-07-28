@@ -50,7 +50,7 @@ contract RebaseToken is ERC20, Ownable, AccessControl {
     // State Variables //
     /////////////////////
     bytes32 private constant MINT_AND_BURN_ROLE = keccak256("MINT_AND_BURN_ROLE");
-    uint256 private s_interestRate = 5e10;
+    uint256 private s_interestRate = (5 * PRECISION_FACTOR) / 1e8; // 10^-8 = 1 / 10^8
     uint256 private constant PRECISION_FACTOR = 1e18;
     mapping(address => uint256) private s_userInterestRate;
     mapping(address => uint256) private s_userLastUpdatedTimestamp;
@@ -77,7 +77,7 @@ contract RebaseToken is ERC20, Ownable, AccessControl {
      * @dev The interest rate can only decrease over time
      */
     function setInterestRate(uint256 _newInterestRate) external onlyOwner{
-        if(_newInterestRate < s_interestRate) {
+        if(_newInterestRate > s_interestRate) {
             revert RebaseToken__InterestRateCanOnlyDecrease(s_interestRate, _newInterestRate);
         }
         s_interestRate = _newInterestRate;
@@ -102,9 +102,6 @@ contract RebaseToken is ERC20, Ownable, AccessControl {
      * @param _amount The amount of tokens to burn
      */
     function burn(address _from, uint256 _amount) external onlyRole(MINT_AND_BURN_ROLE) {
-        if (_amount == type(uint256).max) {
-            _amount = balanceOf(_from);
-        }
         _mintAccuredInterest(_from);
         _burn(_from, _amount);
     }
@@ -185,7 +182,7 @@ contract RebaseToken is ERC20, Ownable, AccessControl {
      * @notice Get the interest rate that is currently set for the contract. Any future depositors will recieve this interest rate
      * @return The interest rate for the contract
      */
-    function getInerestRate() external view returns (uint256) {
+    function getInterestRate() external view returns (uint256) {
         return s_interestRate;
     }
 

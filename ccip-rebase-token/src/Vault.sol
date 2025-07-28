@@ -36,6 +36,9 @@ contract Vault {
      * @param _amount The amount of rebase tokens to redeem 
      */
     function redeem(uint256 _amount) external {
+        if (_amount == type(uint256).max) {
+            _amount = i_rebaseToken.balanceOf(msg.sender);
+        }
         // Burn the tokens form the user
         i_rebaseToken.burn(msg.sender, _amount);
         // Send the user ETH
@@ -48,7 +51,7 @@ contract Vault {
 
     /**
      * @notice Get the address of the rebase token
-     * @return the address of the rebase token
+     * @return The address of the rebase token
      */
     function getRebaseTokenAddress() external view returns (address) {
         return address(i_rebaseToken);

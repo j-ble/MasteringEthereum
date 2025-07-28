@@ -51,4 +51,9 @@ The protocol features a unique interest rate mechanism designed to encourage ear
     ```bash
     forge install
     ```
-    
+
+3.  **Run tests:**
+    ```bash
+    forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage
+    ```
+    This will generate a `lcov.info` file in the `lcov` folder. This is to help your ai with code coverage.
