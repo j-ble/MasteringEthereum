@@ -18,7 +18,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"Solidity/PriceConverter.sol": "priceConverter"
+			"Solidity/PriceConverter.sol": "PriceConverter"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -41,11 +41,11 @@
 			]
 		},
 		"Solidity/PriceConverter.sol": {
-			"keccak256": "0x2b207f0e2feb03edc847238073ddbae214b871ed22320457d454bfe63ce67bc0",
+			"keccak256": "0x658d1eb56ef14b54a79822b5c4a99ae30eb0625cc0b3fd902d68b730bc1714be",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://40eba748195e0187ea2acda328b891c131dea52c761b1a469116c39755f7de16",
-				"dweb:/ipfs/QmRpM1GtKG3fXgEkkBvZJq5GHzoQGxMyvbn5z8cu1WcPcf"
+				"bzz-raw://c27159713e0058dbe052e5a5b8ac8da44287713f906e6c36d7093ceb8525fc9f",
+				"dweb:/ipfs/QmWbfQLA8FKLJr9D49TfvhAste3KEH7pENhVcV8QB3C1r7"
 			]
 		}
 	},
