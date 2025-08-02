@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IRebaseToken} from "../src/interfaces/RebaseToken.I.sol";
+import {IRebaseToken} from "../src/interfaces/IRebaseToken.sol";
 
 contract Vault {
     // We need to pass the token address to the constructor

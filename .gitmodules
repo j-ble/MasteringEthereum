@@ -57,13 +57,13 @@
 	url = https://github.com/smartcontractkit/chainlink-ccip.git
 [submodule "ccip-rebase-token/lib/chainlink-ccip"]
 	path = ccip-rebase-token/lib/chainlink-ccip
-	url = https://github.com/smartcontractkit/chainlink-ccip
+	url = https://github.com/smartcontract/chainlink-ccip
 [submodule "ccip-rebase-token/lib/chainlink"]
 	path = ccip-rebase-token/lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
 [submodule "ccip-rebase-token/lib/chainlink-evm"]
 	path = ccip-rebase-token/lib/chainlink-evm
-	url = https://github.com/smartcontractkit/chainlink-evm
+	url = https://github.com/smartcontract/chainlink-evm
 [submodule "ccip-rebase-token/lib/ccip"]
 	path = ccip-rebase-token/lib/ccip
 	url = https://github.com/smartcontractkit/ccip
