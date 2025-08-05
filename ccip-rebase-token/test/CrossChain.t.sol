@@ -9,10 +9,16 @@ import {IRebaseToken} from "../src/interfaces/IRebaseToken.sol";
 import {CCIPLocalSimulatorFork} from "@chainlink-local/src/ccip/CCIPLocalSimulatorFork.sol";
 
 contract CrossChainTest is Test {
+    address constant owner = makeAddr("owner");
     uint256 sepoliaFork;
     uint256 arbSepoliaFork;
 
     CCIPLocalSimulatorFork ccipLocalSimulatorFork;
+
+    RebaseToken sepoliaToken;
+    RebaseToken arbSepoliaToken;
+
+    Vault vault;
 
     function setUp() public {
         // create two forks
@@ -21,5 +27,17 @@ contract CrossChainTest is Test {
 
         ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
         vm.makePersistent(address(ccipLocalSimulatorFork));
+
+        // 1. Deploy and configure on Sepolia
+        vm.startPrank(owner);
+        sepoliaToken = new RebaseToken();
+        vault = new Vault(IRebaseToken(address(sepoliaToken)));
+        vm.stopPrank();
+
+        // 2. Deploy and configure on Arbitrum Sepolia
+        vm.selectFork(arbSepoliaFork);
+        vm.startPrank();
+        arbSepoliaToken = new RebaseToken();
+        vm.stopPrank();
     }
 }
