@@ -2,10 +2,11 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+rpc_endpoints = { sepolia = "https://eth-sepolia.g.alchemy.com/v2/Ui4FxkxcZJxNj2-xE9xHZ", arb-sepolia = "https://arb-sepolia.g.alchemy.com/v2/Ui4FxkxcZJxNj2-xE9xHZ" } 
 
 # Clean, standard remappings that now work because of the symlink
 remappings = [
     "@ccip/=lib/ccip/",
-    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@chainlink-local/=lib/chainlink-local/"
 ]
-# f this remapping
