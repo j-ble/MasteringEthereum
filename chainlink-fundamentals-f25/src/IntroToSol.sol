@@ -93,4 +93,13 @@ contract Counter {
     function decrement() public {
         count = count - 1;  // You can also write: count -= 1;
     }
+
+    function add(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+    
+    // view: Can read but not modify state
+    function getCount() public view returns (uint256) {
+        return count;
+    }
 }
