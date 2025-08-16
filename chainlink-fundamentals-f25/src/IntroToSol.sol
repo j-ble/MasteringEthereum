@@ -26,7 +26,7 @@ contract TokenContract {
     
     constructor() {
         // Assigned once in the constructor
-        deployer = msg.sender;
+        deployer = msg.sender; // Sets the contract creator as the owner
         deploymentTime = block.timestamp;
     }
 
@@ -94,12 +94,37 @@ contract Counter {
         count = count - 1;  // You can also write: count -= 1;
     }
 
-    function add(uint256 a, uint256 b) public pure returns (uint256) {
-        return a + b;
-    }
-    
     // view: Can read but not modify state
     function getCount() public view returns (uint256) {
         return count;
+    }
+
+    // pure: Cannot read or modify state
+    function addNumbers(uint256 a, uint256 b) public pure returns (uint256) {
+        return a + b;
+    }
+}
+
+// Transaction Contract Variables
+contract OwnerExample {
+    address public owner;
+    
+    constructor() {
+        owner = msg.sender; // The address that deploys the contract becomes the owner
+    }
+}
+
+contract PaymentExample {
+    mapping(address => uint256) public payments;
+    
+    // Function that can receive ETH
+    function makePayment() public payable {
+        require(msg.value > 0, "Must send some ETH");
+        payments[msg.sender] += msg.value;
+    }
+    
+    // Function that checks if minimum payment was made
+    function verifyMinimumPayment(uint256 minimumAmount) public view returns (bool) {
+        return payments[msg.sender] >= minimumAmount;
     }
 }
