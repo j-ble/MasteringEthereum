@@ -179,6 +179,11 @@ contract BlockNumberExample {
     }
 }
 
+// Authentication (who is calling the function?)
+// Value transfer (how much ETH was sent?)
+// Time-based conditions (when did something happen?)
+// Block-based logic (how many blocks have passed?)
+
 // Combining Context Variables in a Contract
 contract TimeLockedWallet {
     address public owner; // withdrawaling privileges
@@ -220,5 +225,96 @@ contract TimeLockedWallet {
         } else {
             return (false, unlockTime - block.timestamp);
         }
+    }
+
+    // Conditionals (if/else): Conditionals let your code make decisions
+    function checkValue(uint256 value) public pure returns (string memory) {
+        if (value > 100) {
+            return "Value is greater than 100";
+        } else if (value == 100) {
+            return "Value is exactly 100";
+        } else {
+            return "Value is less than 100";
+        }
+    }
+
+    // Loops: Loops repeat code until a condition is met
+    // Could lead to denial of service (DoS) attacks
+    function sumArray(uint256[] memory numbers) public pure returns (uint256) {
+        uint256 total = 0;
+        
+        for (uint i = 0; i < numbers.length; i++) {
+            total += numbers[i];
+        }
+        
+        return total;
+    }
+
+    // Require checks a condition and reverts the transaction if it fails:
+    // Function withdraw(uint256 amount) public {
+    //     require(balances[msg.sender] >= amount, "Insufficient balance");
+    //     balances[msg.sender] -= amount;
+    //     payable(msg.sender).transfer(amount);
+    // }
+
+    // error InsufficientBalance(address user, uint256 balance, uint256 withdrawAmount);
+    //     function withdraw(uint256 amount) public {
+    //         if (balances[msg.sender] < amount) {
+    //             revert InsufficientBalance(msg.sender, balances[msg.sender], amount);
+    //         }
+    //         balances[msg.sender] -= amount;
+    //         payable(msg.sender).transfer(amount);
+    // }
+}
+
+contract Token {
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+    
+    mapping(address => uint256) public balances;
+    
+    function transfer(address to, uint256 amount) public {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+        
+        emit Transfer(msg.sender, to, amount);
+    }
+}
+
+contract Owned {
+    address public owner;
+    
+    constructor() {
+        owner = msg.sender;
+    }
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _; // This placeholder is replaced with the function code
+    }
+    
+    function setOwner(address newOwner) public onlyOwner {
+        owner = newOwner;
+    }
+}
+
+interface IPayable {
+    function pay(address recipient, uint256 amount) external returns (bool);
+    function getBalance(address account) external view returns (uint256);
+}
+
+contract PaymentProcessor is IPayable {
+    mapping(address => uint256) private balances;
+    
+    function pay(address recipient, uint256 amount) external override returns (bool) {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        balances[recipient] += amount;
+        return true;
+    }
+    
+    function getBalance(address account) external view override returns (uint256) {
+        return balances[account];
     }
 }
