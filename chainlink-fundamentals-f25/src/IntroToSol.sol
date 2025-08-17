@@ -128,3 +128,97 @@ contract PaymentExample {
         return payments[msg.sender] >= minimumAmount;
     }
 }
+
+contract DataExample {
+    bytes public lastCallData;
+    
+    // Store the raw calldata of the latest transaction
+    function recordCallData() public {
+        lastCallData = msg.data;
+    }
+    
+    // View the size of the calldata
+    function getCallDataSize() public view returns (uint256) {
+        return lastCallData.length;
+    }
+}
+
+contract TimestampExample {
+    uint256 public contractCreationTime;
+    
+    constructor() {
+        contractCreationTime = block.timestamp;
+    }
+    
+    // Check if a specified duration has passed since contract creation
+    function hasDurationPassed(uint256 durationInSeconds) public view returns (bool) {
+        return (block.timestamp >= contractCreationTime + durationInSeconds);
+    }
+    
+    // Create a simple time lock that releases after a specified date
+    function isTimeLockExpired(uint256 releaseTime) public view returns (bool) {
+        return block.timestamp >= releaseTime;
+    }
+}
+
+contract BlockNumberExample {
+    uint256 public deploymentBlockNumber;
+    
+    constructor() {
+        deploymentBlockNumber = block.number;
+    }
+    
+    // Calculate how many blocks have been mined since deployment
+    function getBlocksPassed() public view returns (uint256) {
+        return block.number - deploymentBlockNumber;
+    }
+    
+    // Check if enough blocks have passed for a specific action
+    function hasReachedBlockThreshold(uint256 blockThreshold) public view returns (bool) {
+        return getBlocksPassed() >= blockThreshold;
+    }
+}
+
+// Combining Context Variables in a Contract
+contract TimeLockedWallet {
+    address public owner; // withdrawaling privileges
+    uint256 public unlockTime; // enforces the time-lock
+    
+    // off-chain infustructure
+    // track the contract's activity without having to constantly query its state
+    event Deposit(address indexed sender, uint256 amount, uint256 timestamp);
+    event Withdrawal(uint256 amount, uint256 timestamp);
+    
+    constructor(uint256 _unlockDuration) {
+        owner = msg.sender;
+        unlockTime = block.timestamp + _unlockDuration;
+    }
+    
+    // Accept deposits from anyone
+    function deposit() public payable {
+        require(msg.value > 0, "Must deposit some ETH");
+        emit Deposit(msg.sender, msg.value, block.timestamp);
+    }
+    
+    // Only allow the owner to withdraw after the unlock time
+    function withdraw() public {
+        require(msg.sender == owner, "You are not the owner");
+        require(block.timestamp >= unlockTime, "Funds are still locked");
+        // Prevents the owner from making a useless, gas-wasting call if the contract is empty
+        require(address(this).balance > 0, "No funds to withdraw");
+        
+        uint256 balance = address(this).balance;
+        payable(owner).transfer(balance);
+        
+        emit Withdrawal(balance, block.timestamp);
+    }
+    
+    // Check if withdrawal is possible yet
+    function withdrawalStatus() public view returns (bool canWithdraw, uint256 remainingTime) {
+        if (block.timestamp >= unlockTime) {
+            return (true, 0);
+        } else {
+            return (false, unlockTime - block.timestamp);
+        }
+    }
+}
