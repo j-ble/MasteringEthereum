@@ -1,25 +1,66 @@
-# Smart Wallet Permissions
+## Foundry
 
-**Permissions enable apps to submit transactions on behalf of users.**
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-Permissioned user operations can avoid typical user friction in web3 apps like:
+Foundry consists of:
 
-- Wallet popup windows
-- Passkey biometric scans
-- User presence in-app
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-Permissions unlock experiences that keep all of the unique properties of wallets (self-custody, data portability, etc.) without sacrificing on user experience compared to web2:
+## Documentation
 
-- Sign-in and never see mention of a wallet again
-- High-frequency transactions (gaming, social, etc.)
-- Background transactions (automated trading, subscriptions, etc.)
+https://book.getfoundry.sh/
 
-## Get started
+## Usage
 
-> **Note**: These contracts are currently unaudited and are only recommended for testing purposes. Use at your own risk.
+### Build
 
-Read about how to [get started here](./docs/examples/).
+```shell
+$ forge build
+```
 
-## Learn more
+### Test
 
-For auditors and the curious, we recommend reading our deep-dive documentation [here](./docs).
+```shell
+$ forge test
+```
+
+### Format
+
+```shell
+$ forge fmt
+```
+
+### Gas Snapshots
+
+```shell
+$ forge snapshot
+```
+
+### Anvil
+
+```shell
+$ anvil
+```
+
+### Deploy
+
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
