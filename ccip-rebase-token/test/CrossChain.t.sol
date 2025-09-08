@@ -210,11 +210,8 @@ contract CrossChainTest is Test {
         localUserInterestRate = localToken.getUserInterestRate(user);
 
         vm.selectFork(remoteFork);
-        uint256 remoteBalanceBefore = remoteToken.balanceOf(user);
-        
         vm.warp(block.timestamp + 20 minutes);
-        vm.selectFork(localFork);
-        
+        uint256 remoteBalanceBefore = remoteToken.balanceOf(user);
         ccipLocalSimulatorFork.switchChainAndRouteMessage(remoteFork);
         uint256 remoteBalanceAfter = remoteToken.balanceOf(user);
         assertEq(remoteBalanceAfter, remoteBalanceBefore + amountToBridge);
@@ -223,56 +220,29 @@ contract CrossChainTest is Test {
     }
 
     function testBridgeAllTokens() public {
-        // 1. Setup and send from Sepolia (source fork)
         vm.selectFork(sepoliaFork);
         vm.deal(user, SEND_VALUE);
         vm.prank(user);
         Vault(payable(address(vault))).deposit{value: SEND_VALUE}();
         assertEq(sepoliaToken.balanceOf(user), SEND_VALUE);
-
-        // 2. Prepare and send the CCIP message from Sepolia
-        Client.EVMTokenAmount[] memory tokenAmounts = new Client.EVMTokenAmount[](1);
-        tokenAmounts[0] = Client.EVMTokenAmount({
-            token: address(sepoliaToken),
-            amount: SEND_VALUE
-        });
-        Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
-            receiver: abi.encode(user),
-            data: "",
-            tokenAmounts: tokenAmounts,
-            feeToken: sepoliaNetworkDetails.linkAddress,
-            extraArgs: Client._argsToBytes(Client.EVMExtraArgsV1({gasLimit: 100_000}))
-        });
-        uint256 fee =
-            IRouterClient(sepoliaNetworkDetails.routerAddress).getFee(arbSepoliaNetworkDetails.chainSelector, message);
-        ccipLocalSimulatorFork.requestLinkFromFaucet(user, fee);
-        vm.prank(user);
-        IERC20(sepoliaNetworkDetails.linkAddress).approve(sepoliaNetworkDetails.routerAddress, fee);
-        vm.prank(user);
-        IERC20(address(sepoliaToken)).approve(sepoliaNetworkDetails.routerAddress, SEND_VALUE);
-        
-        uint256 localBalanceBefore = sepoliaToken.balanceOf(user);
-        vm.prank(user);
-        IRouterClient(sepoliaNetworkDetails.routerAddress).ccipSend(arbSepoliaNetworkDetails.chainSelector, message);
-        uint256 localBalanceAfter = sepoliaToken.balanceOf(user);
-        assertEq(localBalanceAfter, localBalanceBefore - SEND_VALUE);
-        localUserInterestRate = sepoliaToken.getUserInterestRate(user);
-
-        // 3. Get state on Arbitrum Sepolia (destination fork) BEFORE message delivery
+        bridgeTokens(
+            SEND_VALUE,
+            sepoliaFork,
+            arbSepoliaFork,
+            sepoliaNetworkDetails,
+            arbSepoliaNetworkDetails,
+            sepoliaToken,
+            arbSepoliaToken
+        );
         vm.selectFork(arbSepoliaFork);
-        uint256 remoteBalanceBefore = arbSepoliaToken.balanceOf(user);
-
-        // 4. Go back to the source fork to run the simulator.
-        //    It will handle switching back to the destination fork internally.
-        vm.selectFork(sepoliaFork);
-        ccipLocalSimulatorFork.switchChainAndRouteMessage(arbSepoliaFork);
-
-        // 5. Assert the final state on Arbitrum Sepolia.
-        //    The active fork is now arbSepoliaFork.
         vm.warp(block.timestamp + 20 minutes);
-        uint256 remoteBalanceAfter = arbSepoliaToken.balanceOf(user);
-        assertEq(remoteBalanceAfter, remoteBalanceBefore + SEND_VALUE);
-        uint256 remoteUserInterestRate = arbSepoliaToken.getUserInterestRate(user);
-        assertEq(remoteUserInterestRate, localUserInterestRate);
+        bridgeTokens(arbSepoliaToken.balanceOf(user),
+            arbSepoliaFork, 
+            sepoliaFork, 
+            arbSepoliaNetworkDetails, 
+            sepoliaNetworkDetails, 
+            arbSepoliaToken, 
+            sepoliaToken
+        );
     }
 }
