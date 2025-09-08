@@ -1,24 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {TokenPool} from "@ccip/contracts/src/v0.8/ccip/pools/TokenPool.sol";
-import {IERC20} from "@ccip/contracts/src/v0.8/vendor/openzeppelin-solidity/v4.8.3/contracts/token/ERC20/IERC20.sol";
+import {TokenPool} from "@chainlink-ccip/pools/TokenPool.sol";
+import {IERC20} from "@forge/interfaces/IERC20.sol";
 import {IRebaseToken} from "./interfaces/IRebaseToken.sol"; // Adjust path if your interface is elsewhere
-import {Pool} from "@ccip/contracts/src/v0.8/ccip/libraries/Pool.sol"; // For CCIP structs
+import {Pool} from "@chainlink-ccip/libraries/Pool.sol"; // For CCIP structs
 
 contract RebaseTokenPool is TokenPool {
     constructor(
-        IERC20 _token, 
+        IERC20 _token,
+        uint8 _localTokenDecimals,
         address[] memory _allowList, 
         address _rmnProxy, 
         address _router
-    ) TokenPool(_token, _allowList, _rmnProxy, _router) {
+    ) TokenPool(_token, _localTokenDecimals, _allowList, _rmnProxy, _router) {
         // Constructor body
     }
 
     function lockOrBurn(
         Pool.LockOrBurnInV1 calldata lockOrBurnIn
-    ) external override returns (Pool.LockOrBurnOutV1 memory lockOrBurnOut) {
+    ) public override returns (Pool.LockOrBurnOutV1 memory lockOrBurnOut) {
         _validateLockOrBurn(lockOrBurnIn);
         // address originalSender = abi.decode(lockOrBurnIn.originalSender, (address));
         // uint256 userInterestRate = IRebaseToken(address(i_token)).getUserInterestRate(originalSender);
@@ -31,15 +32,23 @@ contract RebaseTokenPool is TokenPool {
 
     function releaseOrMint(
         Pool.ReleaseOrMintInV1 calldata releaseOrMintIn
-    ) external override returns (Pool.ReleaseOrMintOutV1 memory releaseOrMintOut) {
-        _validateReleaseOrMint(releaseOrMintIn);
+    ) public override returns (Pool.ReleaseOrMintOutV1 memory releaseOrMintOut) {
+        // Calculate the local amount
+        uint256 localAmount = _calculateLocalAmount(
+            releaseOrMintIn.sourceDenominatedAmount,
+            _parseRemoteDecimals(releaseOrMintIn.sourcePoolData)
+        );
+        // Pass localAmount to the validation function
+        _validateReleaseOrMint(releaseOrMintIn, localAmount);
+
+        // Use localAmount instead of releaseOrMintIn.amount
         // uint256 userInterestRate = abi.decode(releaseOrMintIn.PoolData, (uint256));
         IRebaseToken(address(i_token)).mint(
             releaseOrMintIn.receiver,
-            releaseOrMintIn.amount
+            localAmount
         );
         return Pool.ReleaseOrMintOutV1({
-            destinationAmount: releaseOrMintIn.amount
+            destinationAmount: localAmount
         });
     }
 }

@@ -57,7 +57,7 @@
 	url = https://github.com/smartcontractkit/chainlink-ccip.git
 [submodule "ccip-rebase-token/lib/chainlink-ccip"]
 	path = ccip-rebase-token/lib/chainlink-ccip
-	url = https://github.com/smartcontract/chainlink-ccip
+	url = https://github.com/smartcontractkit/chainlink-ccip
 [submodule "ccip-rebase-token/lib/chainlink"]
 	path = ccip-rebase-token/lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
