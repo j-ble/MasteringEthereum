@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {TokenPool} from "@chainlink-ccip/pools/TokenPool.sol";
-import {IERC20} from "@forge/interfaces/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IRebaseToken} from "./interfaces/IRebaseToken.sol"; // Adjust path if your interface is elsewhere
 import {Pool} from "@chainlink-ccip/libraries/Pool.sol"; // For CCIP structs
 
