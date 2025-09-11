@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {Test, console} from "../lib/forge-std/src/Test.sol";
+
 import {IRouterClient} from "@chainlink-ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink-ccip/libraries/Client.sol";
 import {RateLimiter} from "@chainlink-ccip/libraries/RateLimiter.sol";
-import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {RebaseToken} from "../src/RebaseToken.sol";
 import {RebaseTokenPool} from "../src/RebaseTokenPool.sol";
 import {Vault} from "../src/Vault.sol";
@@ -36,9 +37,9 @@ contract CrossChainTest is Test {
     Register.NetworkDetails private sepoliaNetworkDetails;
     Register.NetworkDetails private arbSepoliaNetworkDetails;
 
-    // State variables to pass data between fork contexts
-    bytes32 public messageId;
-    uint256 public localUserInterestRate;
+    // // State variables to pass data between fork contexts
+    // bytes32 public messageId;
+    // uint256 public localUserInterestRate;
 
     function setUp() public {
         // create two forks
@@ -54,55 +55,56 @@ contract CrossChainTest is Test {
         sepoliaToken = new RebaseToken();
         sepoliaPool = new RebaseTokenPool(
             IERC20(address(sepoliaToken)),
-            sepoliaToken.decimals(),
-            new address[](0), 
+            18,
+            new address[](0),
             sepoliaNetworkDetails.rmnProxyAddress, 
             sepoliaNetworkDetails.routerAddress
         );
         vault = new Vault(IRebaseToken(address(sepoliaToken)));
-
-        // Make contracts persistent so they exist on the other fork
-        vm.makePersistent(address(sepoliaToken));
-        vm.makePersistent(address(sepoliaPool));
-        vm.makePersistent(address(vault));
-
-        sepoliaToken.grantMintAndBurnRole(address(vault));
         sepoliaToken.grantMintAndBurnRole(address(sepoliaPool));
+        sepoliaToken.grantMintAndBurnRole(address(vault));
         RegistryModuleOwnerCustom(sepoliaNetworkDetails.registryModuleOwnerCustomAddress).registerAdminViaOwner(
-            address(sepoliaToken));
+            address(sepoliaToken)
+        );
         TokenAdminRegistry(sepoliaNetworkDetails.tokenAdminRegistryAddress).acceptAdminRole(address(sepoliaToken));
         TokenAdminRegistry(sepoliaNetworkDetails.tokenAdminRegistryAddress).setPool(
-            address(sepoliaToken), address(sepoliaPool));
+            address(sepoliaToken), address(sepoliaPool)
+        );
         vm.stopPrank();
+
+        // // Make contracts persistent so they exist on the other fork
+        // vm.makePersistent(address(sepoliaToken));
+        // vm.makePersistent(address(sepoliaPool));
+        // vm.makePersistent(address(vault));
 
         // 2. Deploy and configure on Arbitrum Sepolia
         vm.selectFork(arbSepoliaFork);
         // Call setUp on the simulator for the Arbitrum Sepolia fork
         arbSepoliaNetworkDetails = ccipLocalSimulatorFork.getNetworkDetails(block.chainid);
-        
         vm.startPrank(owner);
         arbSepoliaToken = new RebaseToken();
         arbSepoliaPool = new RebaseTokenPool(
             IERC20(address(arbSepoliaToken)),
-            arbSepoliaToken.decimals(),
-            new address[](0), 
-            arbSepoliaNetworkDetails.rmnProxyAddress, 
+            18,
+            new address[](0),
+            arbSepoliaNetworkDetails.rmnProxyAddress,
             arbSepoliaNetworkDetails.routerAddress
         );
-
-        // Make contracts persistent
-        vm.makePersistent(address(arbSepoliaToken));
-        vm.makePersistent(address(arbSepoliaPool));
-
         arbSepoliaToken.grantMintAndBurnRole(address(arbSepoliaPool));
         RegistryModuleOwnerCustom(arbSepoliaNetworkDetails.registryModuleOwnerCustomAddress).registerAdminViaOwner(
-            address(arbSepoliaToken));
+            address(arbSepoliaToken)
+        );
         TokenAdminRegistry(arbSepoliaNetworkDetails.tokenAdminRegistryAddress).acceptAdminRole(
-            address(arbSepoliaToken));
+            address(arbSepoliaToken)
+        );
         TokenAdminRegistry(arbSepoliaNetworkDetails.tokenAdminRegistryAddress).setPool(
             address(arbSepoliaToken), address(arbSepoliaPool)
         );
         vm.stopPrank();
+
+        // // Make contracts persistent
+        // vm.makePersistent(address(arbSepoliaToken));
+        // vm.makePersistent(address(arbSepoliaPool));
 
         // 3. Configure pools to recognize each other
         configureTokenPool(
@@ -132,24 +134,23 @@ contract CrossChainTest is Test {
         vm.prank(owner);
 
         // The remotePoolAddress needs to be in an array
-        bytes[] memory remotePools = new bytes[](1);
-        remotePools[0] = abi.encode(remotePool);
+        bytes[] memory remotePoolAddresses = new bytes[](1);
+        remotePoolAddresses[0] = abi.encode(remotePool);
         TokenPool.ChainUpdate[] memory chainsToAdd = new TokenPool.ChainUpdate[](1);
 
         // struct ChainUpdate {
-        //     uint64 remoteChainSelector; // ──╮ Remote chain selector
-        //     bool allowed; // ────────────────╯ Whether the chain should be enabled
-        //     bytes remotePoolAddress; //        Address of the remote pool, ABI encoded in the case of a remote EVM chain.
-        //     bytes remoteTokenAddress; //       Address of the remote token, ABI encoded in the case of a remote EVM chain.
+        //     uint64 remoteChainSelector; // Remote chain selector
+        //     bytes[] remotePoolAddresses; // Address of the remote pool, ABI encoded in the case of a remote EVM chain.
+        //     bytes remoteTokenAddress; // Address of the remote token, ABI encoded in the case of a remote EVM chain.
         //     RateLimiter.Config outboundRateLimiterConfig; // Outbound rate limited config, meaning the rate limits for all of the onRamps for the given chain
         //     RateLimiter.Config inboundRateLimiterConfig; // Inbound rate limited config, meaning the rate limits for all of the offRamps for the given chain
         // }
 
         // Construct the struct with the correct fields
-        // Removed "allowed: true" and used "remotePoolAddresses: remotePools"
+        // Removed "allowed: true" and used "remotePoolAddresses: remotePoolAddresses"
         chainsToAdd[0] = TokenPool.ChainUpdate({
             remoteChainSelector: remoteChainSelector,
-            remotePoolAddresses: remotePools,
+            remotePoolAddresses: remotePoolAddresses,
             remoteTokenAddress: abi.encode(remoteTokenAddress),
             outboundRateLimiterConfig: RateLimiter.Config({
                 isEnabled: false,
@@ -163,7 +164,7 @@ contract CrossChainTest is Test {
             })
         });
         // Call the function with the correct number of arguments
-        TokenPool(localPool).applyChainUpdates(new uint64[](0),chainsToAdd);
+        TokenPool(localPool).applyChainUpdates(new uint64[](0), chainsToAdd);
     }
 
     function bridgeTokens(
@@ -207,7 +208,7 @@ contract CrossChainTest is Test {
         IRouterClient(localNetworkDetails.routerAddress).ccipSend(remoteNetworkDetails.chainSelector, message);
         uint256 localBalanceAfter = localToken.balanceOf(user);
         assertEq(localBalanceAfter, localBalanceBefore - amountToBridge);
-        localUserInterestRate = localToken.getUserInterestRate(user);
+        uint256 localUserInterestRate = localToken.getUserInterestRate(user);
 
         vm.selectFork(remoteFork);
         vm.warp(block.timestamp + 20 minutes);
