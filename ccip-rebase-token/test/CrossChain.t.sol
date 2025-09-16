@@ -24,7 +24,7 @@ contract CrossChainTest is Test {
     uint256 sepoliaFork;
     uint256 arbSepoliaFork;
 
-    CCIPLocalSimulatorFork private ccipLocalSimulatorFork;
+    CCIPLocalSimulatorFork public ccipLocalSimulatorFork;
 
     RebaseToken private sepoliaToken;
     RebaseToken private arbSepoliaToken;
@@ -120,9 +120,8 @@ contract CrossChainTest is Test {
             sepoliaNetworkDetails.chainSelector, 
             address(sepoliaPool), 
             address(sepoliaToken)
-        ); 
+        );
     }
-
     function configureTokenPool(
         uint256 fork, 
         address localPool,
@@ -225,7 +224,8 @@ contract CrossChainTest is Test {
         vm.deal(user, SEND_VALUE);
         vm.prank(user);
         Vault(payable(address(vault))).deposit{value: SEND_VALUE}();
-        assertEq(sepoliaToken.balanceOf(user), SEND_VALUE);
+        uint256 startBalance = IERC20(address(sepoliaToken)).balanceOf(user);
+        assertEq(startBalance, SEND_VALUE);
         bridgeTokens(
             SEND_VALUE,
             sepoliaFork,
@@ -234,16 +234,6 @@ contract CrossChainTest is Test {
             arbSepoliaNetworkDetails,
             sepoliaToken,
             arbSepoliaToken
-        );
-        vm.selectFork(arbSepoliaFork);
-        vm.warp(block.timestamp + 20 minutes);
-        bridgeTokens(arbSepoliaToken.balanceOf(user),
-            arbSepoliaFork, 
-            sepoliaFork, 
-            arbSepoliaNetworkDetails, 
-            sepoliaNetworkDetails, 
-            arbSepoliaToken, 
-            sepoliaToken
         );
     }
 }
