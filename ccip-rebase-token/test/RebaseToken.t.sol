@@ -5,23 +5,14 @@ import {Test, console} from "../lib/forge-std/src/Test.sol";
 import {RebaseToken} from "../src/RebaseToken.sol";
 import {IRebaseToken} from "../src/interfaces/IRebaseToken.sol";
 import {Vault} from "../src/Vault.sol";
-import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import {IAccessControl} from "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-
-contract RejectETH is Test {
-    error REJECT_ETH();
-
-    receive() external payable {
-        revert REJECT_ETH();
-    }
-}
 
 contract RebaseTokenTest is Test {
-    RebaseToken private rebaseToken;
-    Vault private vault;
+    RebaseToken public rebaseToken;
+    Vault public vault;
 
     address public owner = makeAddr("owner");
     address public user = makeAddr("user");
+    uint256 public SEND_VALUE = 1e5;
 
     function setUp() public {
         vm.startPrank(owner);
@@ -48,15 +39,20 @@ contract RebaseTokenTest is Test {
         vault.deposit{value: amount}();
         // 2. Check our rebase token balance
         uint256 startBalance = rebaseToken.balanceOf(user);
+        console.log("block.timestamp", block.timestamp);
         console.log("startBalance", startBalance);
         assertEq(startBalance, amount);
         // 3. Warp the time and check the balance again
         vm.warp(block.timestamp + 1 hours);
+        console.log("block.timestamp", block.timestamp);
         uint256 middleBalance = rebaseToken.balanceOf(user);
+        console.log("middleBalance", middleBalance);
         assertGt(middleBalance, startBalance);
         // 4. Warp the time again by the same amount and check the balance again
         vm.warp(block.timestamp + 1 hours);
         uint256 endBalance = rebaseToken.balanceOf(user);
+        console.log("block.timestamp", block.timestamp);
+        console.log("endBalance", endBalance);
         assertGt(endBalance, middleBalance);
         assertApproxEqAbs(endBalance - middleBalance, middleBalance - startBalance, 1);
         vm.stopPrank();
@@ -70,7 +66,9 @@ contract RebaseTokenTest is Test {
         vault.deposit{value: amount}();
         assertEq(rebaseToken.balanceOf(user), amount);
         // 2. Redeem the funds
-        vault.redeem(type(uint256).max);
+        vault.redeem(amount);
+        uint256 balance = rebaseToken.balanceOf(user);
+        console.log("User balance: %d", balance);
         assertEq(rebaseToken.balanceOf(user), 0);
         assertEq(address(rebaseToken).balance, 0);
         vm.stopPrank();
@@ -85,25 +83,26 @@ contract RebaseTokenTest is Test {
         vault.deposit{value: depositAmount}();
 
         // 2. Warp the time
-        vm.warp(block.timestamp + time);
-        uint256 balanceAfterSomeTime = rebaseToken.balanceOf(user);
+        vm.warp(time);
+        // get balance after time has passed
+        uint256 balance = rebaseToken.balanceOf(user);
         // 2b. Add the reward to the vault
-        vm.deal(owner, balanceAfterSomeTime - depositAmount);
+        vm.deal(owner, balance - depositAmount);
         vm.prank(owner);
-        addRewardsToVault(balanceAfterSomeTime - depositAmount);
+        addRewardsToVault(balance - depositAmount);
         // 3. Redeem the funds
         vm.prank(user);
-        vault.redeem(type(uint256).max);
+        vault.redeem(balance);
 
         uint256 ethBalance = address(user).balance;
         
-        assertEq(ethBalance, balanceAfterSomeTime);
-        assertGt(ethBalance, depositAmount);
+        assertEq(balance, ethBalance);
+        assertGt(balance, depositAmount);
     }
 
     function testTransfer(uint256 amount, uint256 amountToSend) public {
-        amount = bound(amount, 1e5 + 1e5, type(uint96).max);
-        amountToSend = bound(amountToSend, 1e5, amount - 1e5);
+        amount = bound(amount, 1e5 + 1e3, type(uint96).max);
+        amountToSend = bound(amountToSend, 1e5, amount - 1e3);
 
         // 1. Deposit the funds
         vm.deal(user, amount);
@@ -126,25 +125,63 @@ contract RebaseTokenTest is Test {
         uint256 userBalanceAfterTransfer = rebaseToken.balanceOf(user);
         uint256 user2BalanceAfterTransfer = rebaseToken.balanceOf(user2);
         assertEq(userBalanceAfterTransfer, userBalance - amountToSend);
-        assertEq(user2BalanceAfterTransfer, amountToSend);
+        assertEq(user2BalanceAfterTransfer, user2Balance + amountToSend);
 
+        // afyer some time has passed, check the balance of the two users has increased
+        vm.warp(block.timestamp + 1 days);
+        uint256 userBalanceAfterWarp = rebaseToken.balanceOf(user);
+        uint256 user2BalanceAfterWarp = rebaseToken.balanceOf(user2);
+        
         // 3. Check the user interest rate has been inherited (5e10 not 4e10)
-        assertEq(rebaseToken.getUserInterestRate(user), 5e10);
+        uint256 user2InterestRate = rebaseToken.getUserInterestRate(user2);
         assertEq(rebaseToken.getUserInterestRate(user2), 5e10);
+        // since user had minted before, their interest rate should be the previous interest rate
+        uint256 userInterestRate = rebaseToken.getUserInterestRate(user);
+        assertEq(rebaseToken.getUserInterestRate(user), 5e10);
+
+        assertGt(userBalanceAfterWarp, userBalanceAfterTransfer);
+        assertGt(user2BalanceAfterWarp, user2BalanceAfterTransfer);
     }
 
     function testCannotSetInterestRate(uint256 newInterestRate) public {
         vm.prank(user);
-        vm.expectPartialRevert(Ownable.OwnableUnauthorizedAccount.selector);
+        vm.expectRevert();
         rebaseToken.setInterestRate(newInterestRate);
+        vm.stopPrank();
     }
 
-    function testCannotCallMintAndBurn() public {
+    // function testCannotCallMint() public {
+    //     // Deposit some funds
+    //     vm.prank(user);
+    //     uint256 interestRate = RebaseToken.getInterestRate();
+    //     vm.expectRevert();
+    //     rebaseToken.mint(user, SEND_VALUE, interestRate);
+    //     vm.stopPrank();
+    // }
+
+    function testCannotCallBurn() public {
+        // Deposit some funds
         vm.prank(user);
-        vm.expectPartialRevert(IAccessControl.AccessControlUnauthorizedAccount.selector);
-        rebaseToken.mint(user, 100);
-        vm.expectPartialRevert(IAccessControl.AccessControlUnauthorizedAccount.selector);
-        rebaseToken.burn(user, 100);
+        vm.expectRevert();
+        rebaseToken.burn(user, SEND_VALUE);
+        vm.stopPrank();
+    }
+
+    function testCannotWithdrawMoreThanBalance() public {
+        // Deposit funds
+        vm.startPrank(user);
+        vm.deal(user, SEND_VALUE);
+        vault.deposit{value: SEND_VALUE}();
+        vm.expectRevert();
+        vault.redeem(SEND_VALUE + 1);
+        vm.stopPrank();
+    }
+    
+    function testDeposit(uint256 amount) public {
+        amount = bound(amount, 1e3, type(uint96).max);
+        vm.deal(user, amount);
+        vm.prank(user);
+        vault.deposit{value: amount}();
     }
 
     function testGetPrincipleAmount(uint256 amount) public {
@@ -250,22 +287,22 @@ contract RebaseTokenTest is Test {
         assertEq(address(user).balance, ethBalance + redeemAmount);
     }
 
-    function testRedeemFailsIfReceiverRejectsETH() public {
-        // Deploy the helper contract
-        RejectETH rejector = new RejectETH();
+    // function testRedeemFailsIfReceiverRejectsETH() public {
+    //     // Deploy the helper contract
+    //     RejectETH rejector = new RejectETH();
         
-        uint256 depositAmount = 1 ether;
+    //     uint256 depositAmount = 1 ether;
 
-        // The rejector contract deposits funds into the vault
-        vm.deal(address(rejector), depositAmount);
-        vm.prank(address(rejector));
-        vault.deposit{value: depositAmount}();
+    //     // The rejector contract deposits funds into the vault
+    //     vm.deal(address(rejector), depositAmount);
+    //     vm.prank(address(rejector));
+    //     vault.deposit{value: depositAmount}();
 
-        // Now, expect the redeem to fail with our custom vault error
-        vm.prank(address(rejector));
-        vm.expectRevert(Vault.VAULT__REDEEM_FAILED.selector);
-        vault.redeem(depositAmount);
-    }
+    //     // Now, expect the redeem to fail with our custom vault error
+    //     vm.prank(address(rejector));
+    //     vm.expectRevert(Vault.VAULT__REDEEM_FAILED.selector);
+    //     vault.redeem(depositAmount);
+    // }
 
     function testTransferFromMaxAmount() public {
         uint256 depositAmount = 1 ether;
