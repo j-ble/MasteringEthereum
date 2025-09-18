@@ -51,7 +51,7 @@ contract CrossChainTest is Test {
         address[] memory allowlist = new address[](0);
         // create two forks
         // 1. Set up the Sepolia and arb forks
-        sepoliaFork = vm.createSelectFork("eth-sepolia");
+        sepoliaFork = vm.createSelectFork("sepolia");
         arbSepoliaFork = vm.createFork("arb-sepolia");
 
         ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
@@ -62,10 +62,11 @@ contract CrossChainTest is Test {
         vm.startPrank(owner);
         arbSepoliaToken = new RebaseToken();
         console.log("source rebase token address");
-        console.log("address"(arbSepoliaToken));
+        console.log(address(arbSepoliaToken));
         console.log("Deploying token pool on Sepolia");
         arbSepoliaPool = new RebaseTokenPool(
             IERC20(address(arbSepoliaToken)),
+            18,
             allowlist,
             sepoliaNetworkDetails.rmnProxyAddress, 
             sepoliaNetworkDetails.routerAddress
@@ -100,6 +101,7 @@ contract CrossChainTest is Test {
         console.log("Deploying token pool on Arbitrum Sepolia");
         sepoliaPool = new RebaseTokenPool(
             IERC20(address(sepoliaToken)),
+            18,
             allowlist,
             arbSepoliaNetworkDetails.rmnProxyAddress,
             arbSepoliaNetworkDetails.routerAddress
@@ -181,8 +183,8 @@ contract CrossChainTest is Test {
             receiver: abi.encode(user), // we need to encode the address to bytes
             data: "", // We don't need any data for this example
             tokenAmounts: tokenToSendDetails, // this needs to be of type EVMTokenAmount[] as you could send multiple tokens
-            feeToken: localNetworkDetails.linkAddress, // The token used to pay for fee
-            extraArgs: Client._argsToBytes(Client.EVMExtraArgsV1({gasLimit: 100_000}))
+            extraArgs: "",
+            feeToken: localNetworkDetails.linkAddress // The token used to pay for fee
         });
         vm.stopPrank();
         // Give the user the fee amount of LINK
@@ -214,27 +216,49 @@ contract CrossChainTest is Test {
         vm.selectFork(localFork); // assumes you are currently on the local fork before calling switchChainAndRouteMessage
         ccipLocalSimulatorFork.switchChainAndRouteMessage(remoteFork);
 
-        conosle.log("Remote user intereste rate: %d", remoteToken.getUserInterestRate(user));
+        console.log("Remote user intereste rate: %d", remoteToken.getUserInterestRate(user));
         uint256 sepoliaBalance = IERC20(address(remoteToken)).balanceOf(user);
         console.log("Sepolia balance before bridge: %d", sepoliaBalance);
         assertEq(sepoliaBalance, initialArbBalance + amountToBridge);
     }
 
     function testBridgeAllTokens() public {
+        configureTokenPool(
+            sepoliaFork,
+            arbSepoliaPool,
+            sepoliaPool,
+            IRebaseToken(address(sepoliaToken)),
+            arbSepoliaNetworkDetails
+        );
+        configureTokenPool(
+            arbSepoliaFork,
+            sepoliaPool,
+            arbSepoliaPool,
+            IRebaseToken(address(arbSepoliaToken)),
+            sepoliaNetworkDetails
+        );
+        // We are working on the source chain
         vm.selectFork(sepoliaFork);
+        // Pretend a user is interacting with the protocol
+        // Give the user some ETH
         vm.deal(user, SEND_VALUE);
-        vm.prank(user);
+        vm.startPrank(user);
+        // Deposit to the vault and receive tokens
         Vault(payable(address(vault))).deposit{value: SEND_VALUE}();
-        uint256 startBalance = IERC20(address(sepoliaToken)).balanceOf(user);
+        // bridge the tokens
+        console.log("Bridging %d tokens", SEND_VALUE);
+        uint256 startBalance = IERC20(address(arbSepoliaToken)).balanceOf(user);
         assertEq(startBalance, SEND_VALUE);
+        vm.stopPrank();
+        // bridge all tokens to the destination chain
         bridgeTokens(
             SEND_VALUE,
             sepoliaFork,
             arbSepoliaFork,
             sepoliaNetworkDetails,
             arbSepoliaNetworkDetails,
-            sepoliaToken,
-            arbSepoliaToken
+            arbSepoliaToken,
+            sepoliaToken
         );
     }
 }
