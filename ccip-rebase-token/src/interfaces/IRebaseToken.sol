@@ -7,5 +7,5 @@ interface IRebaseToken{
     function balanceOf(address _account) external view returns (uint256);
     function getUserInterestRate(address _account) external view returns (uint256);
     function getInterestRate() external view returns (uint256);
-    function grandMintAndBurnRole(address _account) external;
+    function grantMintAndBurnRole(address _account) external;
 }
