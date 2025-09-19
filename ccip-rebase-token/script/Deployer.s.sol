@@ -22,7 +22,7 @@ contract TokenAndPoolDeployer is Script {
         // Deploy a CCIPLocalSimulatorFork to retrieve the network configuration details
         CCIPLocalSimulatorFork ccipLocalSimulatorFork = new CCIPLocalSimulatorFork();
         // Fetch the network details for the current chain ID
-        Register.NetworkDetails networkDetails = ccipLocalSimulatorFork.getNetworkDetails(block.chainid);
+        Register.NetworkDetails memory networkDetails = ccipLocalSimulatorFork.getNetworkDetails(block.chainid);
         vm.startBroadcast();
         // Deploy a new RebaseToken contract
         token = new RebaseToken();
@@ -33,7 +33,7 @@ contract TokenAndPoolDeployer is Script {
         // - The routerAddress for CCIP routing
         pool = new RebaseTokenPool(
             IERC20(address(token)), 
-            // 18, 
+            18, 
             new address[](0), 
             networkDetails.rmnProxyAddress, 
             networkDetails.routerAddress
@@ -41,7 +41,7 @@ contract TokenAndPoolDeployer is Script {
         // Grant the pool contract mint and burn roles for the RebaseToken, allowing it to manage token supply
         token.grantMintAndBurnRole(address(pool));
         // Register the tokens admin roles in the custom registry module using the network registry module owner address
-        RegistryModuleOwnerCustom(networkDetails.registryModuleOwnerAddress).registerAdminViaOwner(address(token));
+        RegistryModuleOwnerCustom(networkDetails.registryModuleOwnerCustomAddress).registerAdminViaOwner(address(token));
         // Accept the admin role for the token in the TokenAdminRegistry to enable administrative control
         TokenAdminRegistry(networkDetails.tokenAdminRegistryAddress).acceptAdminRole(address(token));
         // Associate the RebaseToken with its RebaseTokenPool in the TokenAdminRegistry for tracking and management
